@@ -21,6 +21,9 @@ async function shutdown(signal: string) {
       logger.info("Redis connection closed.");
     }
 
+    const { disconnectPrisma } = await import("./lib/prisma.js");
+    await disconnectPrisma();
+
     process.exit(0);
   });
 

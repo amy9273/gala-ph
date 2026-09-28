@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 01 Complete (Monorepo Foundation & API Skeleton)
+## Current Status: Unit 02 Complete (Database Models, Prisma & Seed Infrastructure)
 
 ---
 
@@ -10,8 +10,8 @@
 | :-------------------------------------------- | :--------------------------------------------------------------------------------------- | :---------- |
 | **Unit 00: Specs & Architecture Blueprint**   | Context files, architectural invariants, Prisma schema, domain research                  | ✅ Complete |
 | **Unit 01: Monorepo & Docker Setup**          | Workspaces setup, `@gala-ph/shared`, `apps/api` skeleton, `/health` probes, package-lock | ✅ Complete |
-| **Unit 02: Database Models & Prisma**         | Prisma schema (Toll, Transit, Ledger, Bayanihan Packing, Weather Alerts) + Seed Data     | ⏳ Next     |
-| **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | 📅 Planned  |
+| **Unit 02: Database Models & Prisma**         | Prisma schema (Toll, Transit, Ledger, Bayanihan Packing, Weather Alerts) + Seed Data     | ✅ Complete |
+| **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ⏳ Next     |
 | **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | 📅 Planned  |
 | **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | 📅 Planned  |
 | **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | 📅 Planned  |
@@ -38,3 +38,9 @@
 - Configured local `.env` with Neon PostgreSQL pooler and Redis Cloud connection, wiring `REDIS_KEY_PREFIX="galaph:"` into `ioredis` to ensure complete key isolation from Incident Pulse.
 - Formatted and verified all workspaces (100% Prettier, TypeScript strict check, ESLint, automated API tests passing).
 - Unified mobile application architecture strictly onto **React Native (Expo)** with TypeScript to share `@gala-ph/shared` business logic and eliminate cross-language duplication.
+- Implemented **Unit 02 (Database Models & Prisma)**:
+  - Designed full Philippine travel Prisma schema in `apps/api/prisma/schema.prisma` with 14 relational models.
+  - Implemented singleton Prisma client in `apps/api/src/lib/prisma.ts` with graceful process and test teardown.
+  - Integrated live PostgreSQL connectivity check (`prisma.$queryRaw`) into `/health/ready` probe.
+  - Created comprehensive seed data in `apps/api/prisma/seed.ts` with 24 expressway toll segments (NLEX, SCTEX, TPLEX, Skyway 3, SLEX, CALAX, CAVITEX, MCX, CCLEX), 3 major provincial bus hubs (PITX, Cubao, Buendia) with 9 routes, and demo trip _"Elyu Surf & Chill Weekend"_ with Bayanihan packing items, PAGASA weather alert, and itemized KKB dinner expense with non-drinker exclusion.
+  - Pushed schema to live Neon PostgreSQL database and verified all 15 automated unit tests pass.
