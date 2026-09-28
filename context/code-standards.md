@@ -5,6 +5,8 @@
 ## 1. General Engineering Principles
 
 - **Strict Typing**: Zero `any` in TypeScript across all packages and apps (API, Web, and Mobile).
+- **Explicit Lambda & Callback Typing**: Never allow implicit `any` in `.map()`, `.filter()`, `.find()`, and `.reduce()`. Explicitly type parameters using Prisma payload types (`Prisma.<Model>GetPayload<{ include: ... }>`) or DTO interfaces to eliminate TS7006.
+- **Mandatory Non-Null Guards**: When handling nullable database queries (`T | null`) or array lookups (`T | undefined`), always assert and guard explicitly (`if (!val) throw new Error(...)`) before property access to eliminate TS18047 / TS18048.
 - **Fail Fast & Explicitly**: Validate all inputs at the boundary using schema parsers (Zod in TypeScript).
 - **Separation of Concerns**: Controllers parse HTTP requests; Services execute business logic; Repositories/Prisma handle database queries.
 - **No Console Clutter**: Use structured JSON logging (`pino` or `winston` in API). Never push raw `console.log` statements to production.

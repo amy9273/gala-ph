@@ -1,6 +1,31 @@
 import { describe, it, after } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
+import { Prisma } from "@prisma/client";
 import { prisma, disconnectPrisma } from "../lib/prisma.js";
+
+type HubWithRoutes = Prisma.ProvincialTransitHubGetPayload<{
+  include: { routes: true };
+}>;
+type BusRoute = HubWithRoutes["routes"][number];
+
+type TripWithDetails = Prisma.TripGetPayload<{
+  include: {
+    members: { include: { user: true } };
+    packingItems: { include: { assignedTo: true } };
+    weatherAlerts: true;
+    itineraryItems: true;
+  };
+}>;
+type TripMemberWithUser = TripWithDetails["members"][number];
+type PackingItemWithUser = TripWithDetails["packingItems"][number];
+
+type ExpenseWithDetails = Prisma.ExpenseGetPayload<{
+  include: {
+    items: { include: { consumers: true } };
+    splits: { include: { user: true } };
+  };
+}>;
+type ExpenseSplitWithUser = ExpenseWithDetails["splits"][number];
 
 describe("Unit 02: Database Models & Prisma Integration", () => {
   after(async () => {
@@ -15,6 +40,7 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       assert.strictEqual(result.length, 1);
       const row = result[0];
       assert.ok(row);
+      if (!row) throw new Error("Expected ping result row");
       assert.strictEqual(Number(row.ping), 1);
     });
   });
@@ -32,6 +58,7 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       });
 
       assert.ok(rate, "NLEX rate should exist in seed data");
+      if (!rate) throw new Error("NLEX rate not found");
       assert.strictEqual(rate.rfidProvider, "EASYTRIP");
       assert.strictEqual(Number(rate.class1Fee), 157.0);
       assert.strictEqual(Number(rate.class2Fee), 392.0);
@@ -50,6 +77,7 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       });
 
       assert.ok(rate, "TPLEX rate should exist in seed data");
+      if (!rate) throw new Error("TPLEX rate not found");
       assert.strictEqual(rate.rfidProvider, "AUTOSWEEP");
       assert.strictEqual(Number(rate.class1Fee), 311.0);
     });
@@ -63,10 +91,18 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       });
 
       assert.ok(cubao, "Cubao transit hub should exist");
-      const joybus = cubao.routes.find((r) =>
-        r.destination.includes("La Union"),
-      );
+      if (!cubao) throw new Error("Cubao hub not found");
+
+      let joybus: BusRoute | undefined;
+      for (const route of cubao.routes) {
+        if (route.destination.includes("La Union")) {
+          joybus = route;
+          break;
+        }
+      }
+
       assert.ok(joybus, "Genesis JoyBus route to La Union should exist");
+      if (!joybus) throw new Error("Genesis JoyBus route not found");
       assert.strictEqual(joybus.operatorName, "Genesis JoyBus");
       assert.strictEqual(Number(joybus.baseFare), 850.0);
     });
@@ -85,25 +121,41 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       });
 
       assert.ok(trip, "Demo trip should exist");
+      if (!trip) throw new Error("Demo trip not found");
       assert.strictEqual(trip.members.length, 4);
 
-      // Verify Non-drinker member
-      const bea = trip.members.find((m) => m.user.name === "Bea Alonzo");
-      assert.ok(bea);
+      // Verify Non-drinker member using for..of (no callbacks, no implicit any)
+      let bea: TripMemberWithUser | undefined;
+      for (const member of trip.members) {
+        if (member.user.name === "Bea Alonzo") {
+          bea = member;
+          break;
+        }
+      }
+
+      assert.ok(bea, "Bea Alonzo member should exist in trip");
+      if (!bea) throw new Error("Bea Alonzo member not found");
       assert.strictEqual(bea.isNonDrinker, true);
       assert.ok(bea.dietaryNotes?.includes("Shellfish allergy"));
 
-      // Verify Bayanihan Packing Item assignment
-      const cooler = trip.packingItems.find((p) =>
-        p.itemName.includes("Ice Cooler"),
-      );
-      assert.ok(cooler);
+      // Verify Bayanihan Packing Item assignment using for..of
+      let cooler: PackingItemWithUser | undefined;
+      for (const item of trip.packingItems) {
+        if (item.itemName.includes("Ice Cooler")) {
+          cooler = item;
+          break;
+        }
+      }
+
+      assert.ok(cooler, "Cooler packing item should exist");
+      if (!cooler) throw new Error("Cooler packing item not found");
       assert.strictEqual(cooler.assignedTo?.name, "Juan Dela Cruz");
       assert.strictEqual(cooler.isPacked, true);
 
       // Verify PAGASA Weather Alert
       const alert = trip.weatherAlerts[0];
-      assert.ok(alert);
+      assert.ok(alert, "Weather alert should exist");
+      if (!alert) throw new Error("Weather alert not found");
       assert.strictEqual(alert.alertType, "GALE_WARNING");
       assert.strictEqual(alert.source, "DOST-PAGASA");
     });
@@ -120,29 +172,38 @@ describe("Unit 02: Database Models & Prisma Integration", () => {
       });
 
       assert.ok(expense, "Tagpuan dinner expense should exist");
+      if (!expense) throw new Error("Tagpuan expense not found");
       const totalAmount = Number(expense.totalAmount);
       assert.strictEqual(totalAmount, 2400.0);
 
       // Verify sum of all splits equals totalAmount exactly (Mathematical Conservation Invariant)
-      const splitsSum = expense.splits.reduce(
-        (acc, split) => acc + Number(split.amountOwed),
-        0,
-      );
+      let splitsSum = 0;
+      for (const split of expense.splits) {
+        splitsSum += Number(split.amountOwed);
+      }
+
       assert.ok(
         Math.abs(splitsSum - totalAmount) < 0.01,
         `Splits sum (${splitsSum}) must equal total amount (${totalAmount})`,
       );
 
-      // Verify Non-Drinker / Allergy exclusion
-      // Bea should only owe ₱191.49 (liempo + service charge share)
-      const beaSplit = expense.splits.find((s) => s.user.name === "Bea Alonzo");
-      assert.ok(beaSplit);
+      // Verify Non-Drinker / Allergy exclusion using for..of
+      let beaSplit: ExpenseSplitWithUser | undefined;
+      const drinkerSplits: ExpenseSplitWithUser[] = [];
+
+      for (const split of expense.splits) {
+        if (split.user.name === "Bea Alonzo") {
+          beaSplit = split;
+        } else {
+          drinkerSplits.push(split);
+        }
+      }
+
+      assert.ok(beaSplit, "Bea split should exist");
+      if (!beaSplit) throw new Error("Bea split not found");
       assert.strictEqual(Number(beaSplit.amountOwed), 191.49);
 
       // Juan, Maria, Carlo each owe ₱736.17
-      const drinkerSplits = expense.splits.filter(
-        (s) => s.user.name !== "Bea Alonzo",
-      );
       assert.strictEqual(drinkerSplits.length, 3);
       for (const ds of drinkerSplits) {
         assert.strictEqual(Number(ds.amountOwed), 736.17);

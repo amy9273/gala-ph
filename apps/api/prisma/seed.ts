@@ -280,7 +280,7 @@ async function main() {
   // ==========================================
   // 2. PROVINCIAL TRANSIT HUBS & BUS ROUTES
   // ==========================================
-  const pitx = await prisma.provincialTransitHub.create({
+  await prisma.provincialTransitHub.create({
     data: {
       name: "PITX (Parañaque Integrated Terminal Exchange)",
       city: "Parañaque, Metro Manila",
@@ -324,7 +324,7 @@ async function main() {
     },
   });
 
-  const cubao = await prisma.provincialTransitHub.create({
+  await prisma.provincialTransitHub.create({
     data: {
       name: "Cubao EDSA Provincial Bus Terminal Hub",
       city: "Quezon City, Metro Manila",
@@ -378,7 +378,7 @@ async function main() {
     },
   });
 
-  const buendia = await prisma.provincialTransitHub.create({
+  await prisma.provincialTransitHub.create({
     data: {
       name: "Buendia / Pasay Transit Terminal",
       city: "Pasay / Makati, Metro Manila",
@@ -651,7 +651,7 @@ async function main() {
   // - Dish 2: San Mig Pale Pilsen Bucket (₱900) -> Juan, Maria, Carlo (BEA EXCLUDED: Non-drinker)
   // - Dish 3: Garlic Butter Shrimp (₱700) -> Juan, Maria, Carlo (BEA EXCLUDED: Shellfish allergy)
   // - Service charge & tip: ₱50
-  const dinnerExpense = await prisma.expense.create({
+  await prisma.expense.create({
     data: {
       tripId: trip.id,
       paidById: juan.id,

@@ -52,14 +52,39 @@ AI agents must proactively follow these architectural rules to prevent IDE langu
    - Never rely on unstable internal Prisma namespace types.
    - Use clean, standard TypeScript types (`Record<string, unknown>`, `unknown`, or concrete DTO interfaces) for JSON columns.
    - Explicitly type transaction parameters: `(tx: Prisma.TransactionClient) => ...`.
-3. **Explicit Callback & Lambda Parameter Typing**:
-   - Always provide explicit parameter types for all `.map()`, `.filter()`, `.find()`, and array callbacks to prevent `noImplicitAny` errors.
-4. **Mandatory Automated Code Quality & Style Verification Loop**:
+3. **Explicit Callback & Lambda Parameter Typing (Eliminate TS7006)**:
+   - NEVER rely on TypeScript contextual inference for array callbacks (`.find()`, `.filter()`, `.map()`, `.reduce()`).
+   - When querying nested Prisma relations (`include` or `select`), ALWAYS define explicit payload types using `Prisma.<Model>GetPayload<{ include: { ... } }>` and type the callback parameter explicitly:
+     ```ts
+     type TripWithMembers = Prisma.TripGetPayload<{
+       include: { members: { include: { user: true } } };
+     }>;
+     type MemberWithUser = TripWithMembers["members"][number];
+
+     const lead = trip.members.find(
+       (m: MemberWithUser) => m.role === "TRIP_LEAD",
+     );
+     ```
+   - This ensures zero `Parameter '...' implicitly has an 'any' type` errors regardless of IDE language server state.
+4. **Mandatory Non-Null Guards on Nullable Results (Eliminate TS18047 / TS18048)**:
+   - Database lookups (`findUnique`, `findFirst`) return `T | null`. Array `.find()` returns `T | undefined`.
+   - In environments with `noUncheckedIndexedAccess: true` and `strictNullChecks: true`, NEVER access properties directly on the result without an explicit non-null guard.
+   - ALWAYS place an explicit guard immediately after fetching:
+     ```ts
+     const trip = await prisma.trip.findUnique({ where: { inviteCode } });
+     assert.ok(trip, "Trip must exist");
+     if (!trip) throw new Error("Trip not found");
+     // Now trip is 100% narrowed to NonNullable<Trip> across all TS tooling
+     ```
+   - In test files, ALWAYS use `import assert from "node:assert/strict"` instead of `node:assert`, because `node:assert/strict` provides TypeScript assertion function signatures (`asserts value`).
+5. **Root TSConfig Project Resolution**:
+   - Maintain `tsconfig.json` at the monorepo root extending `tsconfig.base.json` so IDE language servers (VS Code, Cursor, Zed) always parse workspace files with unified project context instead of falling back to isolated single-file inference.
+6. **Mandatory Automated Code Quality & Style Verification Loop**:
    - **Formatting (Prettier)**: Run `npm run format` / `prettier --check` on every iteration. Zero style warnings permitted.
    - **Strict Typecheck**: Run `npm run typecheck --workspaces` (`tsc --noEmit`). Zero compiler errors permitted.
    - **Linting**: Run `npm run lint --workspaces` (`eslint .`). Zero linter warnings/errors permitted.
    - **Test Suites**: Run relevant unit/integration tests to ensure regressions are caught early.
-5. **Redis Namespace Discipline (Shared Instance)**:
+7. **Redis Namespace Discipline (Shared Instance)**:
    - Always prefix all Redis keys, BullMQ queues, and locks with `galaph:` (`galaph:cache:*`, `galaph:idempotency:*`, `galaph:bullmq:*`) to prevent collision with other applications sharing the existing Redis instance.
    - Always import the Redis client from `src/lib/redis.ts` and ensure connections are quit cleanly in tests and shutdown handlers to avoid open socket leaks.
 
