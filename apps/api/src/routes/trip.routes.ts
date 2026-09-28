@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { tripController } from "../controllers/trip.controller.js";
+import { tollController } from "../controllers/toll.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
@@ -9,6 +10,7 @@ import {
   tripIdParamSchema,
   tripMemberParamSchema,
 } from "../schemas/trip.schema.js";
+import { attachTollEstimateSchema } from "../schemas/toll.schema.js";
 
 export const tripRouter = Router();
 
@@ -48,4 +50,13 @@ tripRouter.delete(
   "/:id/members/:userId",
   validate({ params: tripMemberParamSchema }),
   tripController.removeMember.bind(tripController),
+);
+
+tripRouter.post(
+  "/:id/toll-estimates",
+  validate({
+    params: tripIdParamSchema,
+    body: attachTollEstimateSchema,
+  }),
+  tollController.attachToTrip.bind(tollController),
 );
