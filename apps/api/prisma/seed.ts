@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
 import {
   PrismaClient,
   Role,
@@ -5,6 +8,13 @@ import {
   ExpenseCategory,
   RfidProvider,
 } from "@prisma/client";
+
+// Load .env from workspace or monorepo root
+dotenv.config();
+const monorepoRootEnv = path.resolve(process.cwd(), "../../.env");
+if (fs.existsSync(monorepoRootEnv)) {
+  dotenv.config({ path: monorepoRootEnv });
+}
 
 const prisma = new PrismaClient();
 

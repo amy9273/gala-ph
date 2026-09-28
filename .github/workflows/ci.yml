@@ -126,7 +126,7 @@ jobs:
       - name: Run Prisma Schema Push
         run: |
           if [ -f "apps/api/prisma/schema.prisma" ]; then
-            npm run db:migrate:test --workspace=apps/api --if-present
+            npm run db:migrate:test --workspace=apps/api
           fi
 
       - name: Execute API Integration Tests

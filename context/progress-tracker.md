@@ -44,3 +44,4 @@
   - Integrated live PostgreSQL connectivity check (`prisma.$queryRaw`) into `/health/ready` probe.
   - Created comprehensive seed data in `apps/api/prisma/seed.ts` with 24 expressway toll segments (NLEX, SCTEX, TPLEX, Skyway 3, SLEX, CALAX, CAVITEX, MCX, CCLEX), 3 major provincial bus hubs (PITX, Cubao, Buendia) with 9 routes, and demo trip _"Elyu Surf & Chill Weekend"_ with Bayanihan packing items, PAGASA weather alert, and itemized KKB dinner expense with non-drinker exclusion.
   - Pushed schema to live Neon PostgreSQL database and verified all 15 automated unit tests pass.
+  - Resolved CI `test-api` quality gate by defining `db:migrate:test` script (`prisma db push --accept-data-loss && tsx prisma/seed.ts`) in `apps/api/package.json` and monorepo root, ensuring CI ephemeral PostgreSQL container is migrated and seeded before test execution.
