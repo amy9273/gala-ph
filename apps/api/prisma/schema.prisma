@@ -56,8 +56,10 @@ model User {
   memberships   TripMember[]
   expensesPaid  Expense[]      @relation("ExpensePayer")
   itemsConsumed ItemConsumer[]
-  splitsOwed    ExpenseSplit[]
-  assignedGear  PackingItem[]  @relation("AssignedGear")
+  splitsOwed          ExpenseSplit[]
+  settlementsPaid     Settlement[]   @relation("SettlementPayer")
+  settlementsReceived Settlement[]   @relation("SettlementRecipient")
+  assignedGear        PackingItem[]  @relation("AssignedGear")
 
   @@map("users")
 }
@@ -78,6 +80,7 @@ model Trip {
   members        TripMember[]
   itineraryItems ItineraryItem[]
   expenses       Expense[]
+  settlements    Settlement[]
   transitLegs    TransitLeg[]
   tollEstimates  TollEstimate[]
   packingItems   PackingItem[]
@@ -319,4 +322,25 @@ model TodaTariff {
   @@index([municipality])
   @@map("toda_tariffs")
 }
+
+model Settlement {
+  id             String    @id @default(cuid())
+  tripId         String
+  trip           Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  payerId        String
+  payer          User      @relation("SettlementPayer", fields: [payerId], references: [id], onDelete: Restrict)
+  recipientId    String
+  recipient      User      @relation("SettlementRecipient", fields: [recipientId], references: [id], onDelete: Restrict)
+  amount         Decimal   @db.Decimal(10, 2)
+  amountCentavos Int
+  paymentMethod  String    @default("GCASH") // GCASH, MAYA, CASH, BANK_TRANSFER
+  notes          String?
+  settledAt      DateTime  @default(now())
+
+  @@index([tripId])
+  @@index([payerId])
+  @@index([recipientId])
+  @@map("settlements")
+}
+
 

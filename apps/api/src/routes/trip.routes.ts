@@ -2,6 +2,7 @@ import { Router } from "express";
 import { tripController } from "../controllers/trip.controller.js";
 import { tollController } from "../controllers/toll.controller.js";
 import { transitController } from "../controllers/transit.controller.js";
+import { ledgerController } from "../controllers/ledger.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
@@ -13,6 +14,11 @@ import {
 } from "../schemas/trip.schema.js";
 import { attachTollEstimateSchema } from "../schemas/toll.schema.js";
 import { attachTransitLegsSchema } from "../schemas/transit.schema.js";
+import {
+  CreateExpenseSchema,
+  SettleDebtSchema,
+  ExpenseIdParamSchema,
+} from "../schemas/ledger.schema.js";
 
 export const tripRouter = Router();
 
@@ -70,4 +76,49 @@ tripRouter.post(
     body: attachTransitLegsSchema,
   }),
   transitController.attachToTrip.bind(transitController),
+);
+
+// ==========================================
+// KKB Consumption Ledger & Debt Engine Routes
+// ==========================================
+tripRouter.post(
+  "/:id/expenses",
+  validate({
+    params: tripIdParamSchema,
+    body: CreateExpenseSchema,
+  }),
+  ledgerController.createExpense.bind(ledgerController),
+);
+
+tripRouter.get(
+  "/:id/expenses",
+  validate({ params: tripIdParamSchema }),
+  ledgerController.getTripExpenses.bind(ledgerController),
+);
+
+tripRouter.get(
+  "/:id/expenses/:expenseId",
+  validate({ params: ExpenseIdParamSchema }),
+  ledgerController.getExpenseById.bind(ledgerController),
+);
+
+tripRouter.get(
+  "/:id/ledger/balances",
+  validate({ params: tripIdParamSchema }),
+  ledgerController.getTripBalances.bind(ledgerController),
+);
+
+tripRouter.get(
+  "/:id/ledger/settlements",
+  validate({ params: tripIdParamSchema }),
+  ledgerController.simplifyDebts.bind(ledgerController),
+);
+
+tripRouter.post(
+  "/:id/ledger/settle",
+  validate({
+    params: tripIdParamSchema,
+    body: SettleDebtSchema,
+  }),
+  ledgerController.settleDebt.bind(ledgerController),
 );
