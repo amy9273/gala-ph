@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 03 Complete (Auth & Trip Management Engine)
+## Current Status: Unit 04 Complete (Philippine Expressway Dual-RFID Toll & Fuel Engine)
 
 ---
 
@@ -12,8 +12,8 @@
 | **Unit 01: Monorepo & Docker Setup**          | Workspaces setup, `@gala-ph/shared`, `apps/api` skeleton, `/health` probes, package-lock | ✅ Complete |
 | **Unit 02: Database Models & Prisma**         | Prisma schema (Toll, Transit, Ledger, Bayanihan Packing, Weather Alerts) + Seed Data     | ✅ Complete |
 | **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ✅ Complete |
-| **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ⏳ Next     |
-| **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | 📅 Planned  |
+| **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ✅ Complete |
+| **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | ⏳ Next     |
 | **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | 📅 Planned  |
 | **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | 📅 Planned  |
 | **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | 📅 Planned  |
@@ -56,3 +56,11 @@
   - Implemented member role promotions and preference management (`isDriver`, `vehicleId`, `isNonDrinker`, `dietaryNotes`) with lead and self authorization guards.
   - Enforced multi-tenant trip boundary protection (403 Forbidden for non-members).
   - Created 18 automated integration tests in `apps/api/src/__tests__/unit-03-auth-trip.test.ts` (33/33 tests passing monorepo-wide).
+- Implemented **Unit 04 (Philippine Expressway Dual-RFID Toll & Fuel Engine)**:
+  - Built `TollService` with bidirectional symmetrical plaza resolution across NLEX, SCTEX, TPLEX, Skyway 3, SLEX, CALAX, CAVITEX, MCX, CCLEX.
+  - Implemented Dual-RFID Account Isolation: aggregates fees strictly by provider (`AUTOSWEEP` vs `EASYTRIP`), computing exact centavos and rounded Philippine peso reload buffers (nearest ₱50).
+  - Configured 5 preset Philippine road trip routes (`MANILA_TO_LA_UNION`, `MANILA_TO_BAGUIO`, `MANILA_TO_BATANGAS_PORT`, `MANILA_TO_TAGAYTAY`, `MANILA_TO_SUBIC`).
+  - Implemented vehicle class fee multipliers (Class 1 sedans/SUVs, Class 2 vans/coasters, Class 3 heavy freight).
+  - Built Philippine Fuel Consumption Estimator (`FuelService`) with vehicle economy presets (`SEDAN_1_5L`, `SUV_DIESEL_2_8L`, `COMMUTER_VAN`, `MOTORCYCLE_150CC`, `CUSTOM`) and exact centavo fuel math.
+  - Integrated toll estimation with trip vehicle tagging (`POST /api/v1/trips/:id/toll-estimates`) with member authorization checks and `vehicleId` grouping.
+  - Created 9 automated integration tests in `apps/api/src/__tests__/unit-04-toll-fuel.test.ts` (42/42 tests passing monorepo-wide).
