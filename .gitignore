@@ -33,18 +33,15 @@ dump.rdb
 postgres_data/
 redis_data/
 
-# Flutter / Mobile
-apps/mobile/.dart_tool/
-apps/mobile/.flutter-plugins
-apps/mobile/.flutter-plugins-dependencies
-apps/mobile/.packages
-apps/mobile/build/
-apps/mobile/ios/Pods/
-apps/mobile/ios/.symlinks/
-apps/mobile/android/.gradle/
-apps/mobile/android/local.properties
+# Mobile App (React Native / Expo)
+.expo/
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
 *.apk
 *.aab
+*.jks
+*.keystore
 
 # OS & Editor Files
 .DS_Store

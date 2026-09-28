@@ -6,11 +6,12 @@
                                   [ GalaPH System Architecture ]
 
      ┌────────────────────────────┐                        ┌────────────────────────────┐
-     │   Mobile App (Flutter/RN)  │                        │   Web App (Next.js 15)     │
-     │ • Offline SQLite Cache     │                        │ • Public Trip Planner & Map│
-     │ • Convoy Live GPS Beacon   │                        │ • Host / Resort Admin View │
-     │ • Camera OCR for Receipts  │                        │ • Deep Analytics & Itin.   │
-     │ • Bayanihan Packing Sync   │                        │ • PAGASA Weather Banner    │
+     │ Mobile App (React Native)  │                        │   Web App (Next.js 15)     │
+     │ • Expo + TypeScript        │                        │ • Public Trip Planner & Map│
+     │ • Offline SQLite (expo)    │                        │ • Host / Resort Admin View │
+     │ • Convoy Live GPS Beacon   │                        │ • Deep Analytics & Itin.   │
+     │ • Camera OCR for Receipts  │                        │ • PAGASA Weather Banner    │
+     │ • Bayanihan Packing Sync   │                        │                            │
      └─────────────┬──────────────┘                        └─────────────┬──────────────┘
                    │                                                     │
                    └──────────────────────┬──────────────────────────────┘

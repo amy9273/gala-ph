@@ -20,7 +20,7 @@
 | **Unit 09: Interactive Trip Planner Map**     | Interactive Mapbox/Leaflet routing, dual-RFID card, PAGASA weather alert banner          | 📅 Planned  |
 | **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | 📅 Planned  |
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | 📅 Planned  |
-| **Unit 12: Mobile Scaffold & Offline SQLite** | Offline SQLite persistence, offline itinerary, packing checklist & expense queue         | 📅 Planned  |
+| **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | 📅 Planned  |
 | **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | 📅 Planned  |
 | **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | 📅 Planned  |
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest test suites, quality gate verification                     | 📅 Planned  |
@@ -37,3 +37,4 @@
 - Documented and instituted Redis namespace invariant (`galaph:*`) for shared Redis environments.
 - Configured local `.env` with Neon PostgreSQL pooler and Redis Cloud connection, wiring `REDIS_KEY_PREFIX="galaph:"` into `ioredis` to ensure complete key isolation from Incident Pulse.
 - Formatted and verified all workspaces (100% Prettier, TypeScript strict check, ESLint, automated API tests passing).
+- Unified mobile application architecture strictly onto **React Native (Expo)** with TypeScript to share `@gala-ph/shared` business logic and eliminate cross-language duplication.
