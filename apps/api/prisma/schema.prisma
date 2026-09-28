@@ -301,3 +301,22 @@ model ItineraryItem {
   @@index([tripId])
   @@map("itinerary_items")
 }
+
+model TodaTariff {
+  id                 String   @id @default(cuid())
+  municipality       String
+  barangayOrZone     String
+  routeFrom          String
+  routeTo            String
+  regularFarePerHead Decimal  @db.Decimal(10, 2)
+  specialTripFare    Decimal  @db.Decimal(10, 2)
+  nightDiffFare      Decimal? @db.Decimal(10, 2)
+  lastTripCurfew     String?
+  dialectTips        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([municipality])
+  @@map("toda_tariffs")
+}
+

@@ -8,6 +8,7 @@ import { healthRouter } from "./routes/health.routes.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { tripRouter } from "./routes/trip.routes.js";
 import { tollRouter } from "./routes/toll.routes.js";
+import { transitRouter } from "./routes/transit.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -28,11 +29,13 @@ export function createApp(): Express {
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/trips", tripRouter);
   app.use("/api/v1/toll", tollRouter);
+  app.use("/api/v1/transit", transitRouter);
 
   // Aliases for root api access
   app.use("/auth", authRouter);
   app.use("/trips", tripRouter);
   app.use("/toll", tollRouter);
+  app.use("/transit", transitRouter);
 
   // Catch-all 404 handler
   app.use((req, _res, next) => {

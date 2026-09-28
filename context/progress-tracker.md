@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 04 Complete (Philippine Expressway Dual-RFID Toll & Fuel Engine)
+## Current Status: Unit 05 Complete (Commuter Transit Router & TODA Tariff Engine)
 
 ---
 
@@ -13,8 +13,8 @@
 | **Unit 02: Database Models & Prisma**         | Prisma schema (Toll, Transit, Ledger, Bayanihan Packing, Weather Alerts) + Seed Data     | ✅ Complete |
 | **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ✅ Complete |
 | **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ✅ Complete |
-| **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | ⏳ Next     |
-| **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | 📅 Planned  |
+| **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | ✅ Complete |
+| **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | ⏳ Next     |
 | **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | 📅 Planned  |
 | **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | 📅 Planned  |
 | **Unit 09: Interactive Trip Planner Map**     | Interactive Mapbox/Leaflet routing, dual-RFID card, PAGASA weather alert banner          | 📅 Planned  |
@@ -64,3 +64,10 @@
   - Built Philippine Fuel Consumption Estimator (`FuelService`) with vehicle economy presets (`SEDAN_1_5L`, `SUV_DIESEL_2_8L`, `COMMUTER_VAN`, `MOTORCYCLE_150CC`, `CUSTOM`) and exact centavo fuel math.
   - Integrated toll estimation with trip vehicle tagging (`POST /api/v1/trips/:id/toll-estimates`) with member authorization checks and `vehicleId` grouping.
   - Created 9 automated integration tests in `apps/api/src/__tests__/unit-04-toll-fuel.test.ts` (42/42 tests passing monorepo-wide).
+- Implemented **Unit 05 (Commuter Transit Router & TODA Tariff Engine)**:
+  - Designed and added `TodaTariff` model to `apps/api/prisma/schema.prisma` with provincial municipality, route, special trip fare, night differential, last trip curfew, and localized dialect tips.
+  - Seeded official TODA tariffs across top Philippine barkada destinations (San Juan La Union, Batangas Wawa Port, Baler Aurora, Moalboal Cebu, Panglao Bohol) with dialect tips (Ilocano, Batangueño, Cebuano).
+  - Built `TransitService` for provincial transit hub lookups, GTFS-style bus route searches, and TODA tariff queries.
+  - Implemented end-to-end multi-leg commuter itinerary planner (`/api/v1/transit/plan-commute`) combining Metro Manila terminal bus legs with first-mile / last-mile TODA tricycle legs, computing per-head and total group fares, curfew advisories, and dialect negotiation tips.
+  - Added trip integration endpoint (`POST /api/v1/trips/:id/transit-legs`) with member authorization check to persist commuter itineraries as `TransitLeg` entities.
+  - Created 8 automated integration tests in `apps/api/src/__tests__/unit-05-transit-toda.test.ts` (50/50 tests passing monorepo-wide).

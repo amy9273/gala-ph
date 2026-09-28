@@ -1,0 +1,12 @@
+{
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "dynamicPriority",
+    "watchDirectory": "dynamicPriority"
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/!(@prisma|.prisma)/**": true
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "auto"
+}
