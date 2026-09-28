@@ -34,7 +34,7 @@ apps/api/src/
 - **Route Validation**: Every mutation endpoint (`POST`, `PUT`, `PATCH`) must run a Zod validation middleware before reaching the controller.
 - **Transactions**: Multi-table updates (e.g. creating an expense and generating granular consumer splits) must be wrapped in `prisma.$transaction()`.
 - **Environment**: All environment variables are validated at boot in `src/config/env.ts` with Zod. The app exits immediately with code 1 if any required variable is missing.
-- **Singletons & Connection Pooling**: `PrismaClient` and `ioredis` instances must be exported as singletons from `src/lib/` to avoid connection exhaustion.
+- **Singletons & Shared Redis Namespacing**: `PrismaClient` and `ioredis` instances must be exported as singletons from `src/lib/` to avoid connection exhaustion. When connecting to an existing/shared Redis instance, all keys, locks, and BullMQ queues must strictly use the `galaph:` prefix.
 - **Correlation Tracing**: All requests and structured logs must propagate `X-Correlation-ID` using `AsyncLocalStorage` without manual prop-drilling.
 
 ---

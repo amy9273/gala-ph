@@ -32,17 +32,20 @@ An all-in-one group travel operating system tailored specifically for the Philip
 ## 🚀 Quick Start
 
 ### 1. Start Infrastructure (PostgreSQL & Redis)
+
 ```bash
 docker-compose up -d
 ```
 
 ### 2. Install Dependencies & Build Packages
+
 ```bash
 npm install
 npm run build:shared
 ```
 
 ### 3. Run Development Servers
+
 ```bash
 npm run dev:api    # Starts API server on http://localhost:5000
 npm run dev:web    # Starts Next.js Web App on http://localhost:3000
@@ -53,6 +56,7 @@ npm run dev:web    # Starts Next.js Web App on http://localhost:3000
 ## 📖 Architecture & Standards Documentation
 
 Before contributing or modifying code, consult the context files:
+
 - [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md) — Operating rules and workflow discipline.
 - [`context/project-overview.md`](./context/project-overview.md) — Product definition & user personas.
 - [`context/architecture.md`](./context/architecture.md) — System boundaries & Prisma database schema.

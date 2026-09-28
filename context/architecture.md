@@ -10,6 +10,7 @@
      │ • Offline SQLite Cache     │                        │ • Public Trip Planner & Map│
      │ • Convoy Live GPS Beacon   │                        │ • Host / Resort Admin View │
      │ • Camera OCR for Receipts  │                        │ • Deep Analytics & Itin.   │
+     │ • Bayanihan Packing Sync   │                        │ • PAGASA Weather Banner    │
      └─────────────┬──────────────┘                        └─────────────┬──────────────┘
                    │                                                     │
                    └──────────────────────┬──────────────────────────────┘
@@ -22,6 +23,7 @@
    [ Toll & Route Engine ]       [ Real-time WebSocket Hub ]   [ Ledger & Split Engine ]
    • OpenStreetMap / OSRM        • Convoy Live Geofencing      • Debt Simplification Graph
    • Autosweep/Easytrip Matrix   • Live Group Chat             • Multi-payer atomic tx
+   • PAGASA Weather Alerts       • Live Packing Checklist Sync • Receipt OCR Worker
             │                             │                             │
             └─────────────────────────────┼─────────────────────────────┘
                                           ▼
@@ -35,31 +37,16 @@
 ## 2. Component Boundaries & Responsibilities
 
 ### A. `apps/api` (Backend Engine)
+
 - **Framework**: Node.js + Fastify / Express (TypeScript).
 - **Core Modules**:
   1. `TollService`: Highway lookup tables for Skyway, NLEX, SCTEX, SLEX, TPLEX, CALAX, CAVITEX, NAIAX, CCLEX.
   2. `TransitService`: GTFS-style provincial bus schedules (PITX, Cubao, Pasay, Buendia) + TODA tariff database.
-  3. `SplitLedgerService`: Itemized bill consumption engine + Debt simplification graph solver.
-  4. `SocketServer`: Convoy telemetry, real-time geofence pinging, and synchronized trip updates.
-  5. `ReceiptOcrWorker`: Asynchronous Tesseract / Vision OCR processing queue for physical receipts.
-
-### B. `apps/web` (Interactive Web Portal)
-- **Framework**: Next.js 15 (App Router) + Tailwind CSS + shadcn/ui.
-- **Responsibilities**:
-  - Interactive multi-stop Trip Builder with Mapbox / Leaflet highway toll previews.
-  - Comprehensive KKB Ledger Breakdown dashboard with downloadable PDF statements.
-  - Crowdsourced TODA Fare Matrix Wiki with community upvoting.
-
-### C. `apps/mobile` (Mobile Companion App)
-- **Framework**: Flutter or React Native (Expo) with local SQLite caching.
-- **Responsibilities**:
-  - 100% offline access to trip itinerary, contact numbers, and saved receipts.
-  - Camera OCR receipt capture with interactive touch-to-assign item tagging.
-  - Convoy GPS beaconing with battery-efficient background updates.
-  - Dynamic GCash / Maya QR generator for instant on-site debt settlement.
-
-### D. `packages/shared`
-- Shared TypeScript interfaces, DTOs, Zod validation schemas, Philippine currency formatters, and mathematical ledger formulas.
+  3. `WeatherService`: DOST-PAGASA advisory ingestion (Tropical Cyclone Wind Signals, Gale Warnings, Heavy Rainfall).
+  4. `PackingService`: Bayanihan assignable shared gear checklist & real-time socket syncing.
+  5. `SplitLedgerService`: Itemized bill consumption engine + Debt simplification graph solver.
+  6. `SocketServer`: Convoy telemetry, real-time geofence pinging, and synchronized trip updates.
+  7. `ReceiptOcrWorker`: Asynchronous Tesseract / Vision OCR processing queue for physical receipts.
 
 ---
 
@@ -118,6 +105,7 @@ model User {
   expensesPaid    Expense[]     @relation("ExpensePayer")
   itemsConsumed   ItemConsumer[]
   splitsOwed      ExpenseSplit[]
+  assignedGear    PackingItem[] @relation("AssignedGear")
 }
 
 model Trip {
@@ -136,6 +124,8 @@ model Trip {
   expenses        Expense[]
   transitLegs     TransitLeg[]
   tollEstimates   TollEstimate[]
+  packingItems    PackingItem[]
+  weatherAlerts   TripWeatherAlert[]
 }
 
 model TripMember {
@@ -152,6 +142,31 @@ model TripMember {
   joinedAt        DateTime      @default(now())
 
   @@unique([tripId, userId])
+}
+
+model PackingItem {
+  id              String        @id @default(cuid())
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itemName        String        // e.g. "Coleman Ice Cooler (40L)", "Extension Cord 10m"
+  category        String        // e.g. "GEAR", "FOOD_DRINKS", "MEDICAL", "COMFORT"
+  quantity        Int           @default(1)
+  assignedToId    String?
+  assignedTo      User?         @relation("AssignedGear", fields: [assignedToId], references: [id])
+  isPacked        Boolean       @default(false)
+  packedAt        DateTime?
+}
+
+model TripWeatherAlert {
+  id              String        @id @default(cuid())
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  alertType       String        // "CYCLONE_SIGNAL_1", "GALE_WARNING", "HEAVY_RAINFALL"
+  severity        String        // "LOW", "MODERATE", "CRITICAL"
+  headline        String        // e.g. "Tropical Cyclone Wind Signal #1 over La Union"
+  advisory        String
+  source          String        @default("DOST-PAGASA")
+  issuedAt        DateTime      @default(now())
 }
 
 model Expense {
@@ -250,6 +265,9 @@ model ItineraryItem {
 ---
 
 ## 4. Architectural Invariants
+
 1. **Mathematical Conservation**: The sum of all `ExpenseSplit.amountOwed` for any given expense MUST exactly equal `Expense.totalAmount` within ₱0.01 margin of floating precision (handled via integer centavo math).
 2. **Strict Transit Isolation**: Expenses tagged with `vehicleIdOnly` cannot be assigned to members not seated in that vehicle.
 3. **Offline Invariant**: All write actions generated on the mobile app in offline mode must include a monotonic client timestamp and idempotency UUID to prevent duplicate splits during sync.
+4. **Shared Redis Namespace Invariant**: All keys, BullMQ queues, and Pub/Sub topics written by GalaPH must be strictly prefixed with `galaph:` (`galaph:cache:*`, `galaph:idempotency:*`, `galaph:bullmq:*`) to ensure 100% isolation when running against an existing/shared Redis instance.
+5. **Health Probe Isolation Invariant**: `GET /health/live` must verify process vitality only without querying PostgreSQL or Redis. External dependency connectivity is verified exclusively via `GET /health/ready`.

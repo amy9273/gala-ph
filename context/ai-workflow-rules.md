@@ -59,6 +59,9 @@ AI agents must proactively follow these architectural rules to prevent IDE langu
    - **Strict Typecheck**: Run `npm run typecheck --workspaces` (`tsc --noEmit`). Zero compiler errors permitted.
    - **Linting**: Run `npm run lint --workspaces` (`eslint .`). Zero linter warnings/errors permitted.
    - **Test Suites**: Run relevant unit/integration tests to ensure regressions are caught early.
+5. **Redis Namespace Discipline (Shared Instance)**:
+   - Always prefix all Redis keys, BullMQ queues, and locks with `galaph:` (`galaph:cache:*`, `galaph:idempotency:*`, `galaph:bullmq:*`) to prevent collision with other applications sharing the existing Redis instance.
+   - Always import the Redis client from `src/lib/redis.ts` and ensure connections are quit cleanly in tests and shutdown handlers to avoid open socket leaks.
 
 ---
 
