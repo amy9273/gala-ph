@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 02 Complete (Database Models, Prisma & Seed Infrastructure)
+## Current Status: Unit 03 Complete (Auth & Trip Management Engine)
 
 ---
 
@@ -11,8 +11,8 @@
 | **Unit 00: Specs & Architecture Blueprint**   | Context files, architectural invariants, Prisma schema, domain research                  | ✅ Complete |
 | **Unit 01: Monorepo & Docker Setup**          | Workspaces setup, `@gala-ph/shared`, `apps/api` skeleton, `/health` probes, package-lock | ✅ Complete |
 | **Unit 02: Database Models & Prisma**         | Prisma schema (Toll, Transit, Ledger, Bayanihan Packing, Weather Alerts) + Seed Data     | ✅ Complete |
-| **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ⏳ Next     |
-| **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | 📅 Planned  |
+| **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ✅ Complete |
+| **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ⏳ Next     |
 | **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | 📅 Planned  |
 | **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | 📅 Planned  |
 | **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | 📅 Planned  |
@@ -45,3 +45,14 @@
   - Created comprehensive seed data in `apps/api/prisma/seed.ts` with 24 expressway toll segments (NLEX, SCTEX, TPLEX, Skyway 3, SLEX, CALAX, CAVITEX, MCX, CCLEX), 3 major provincial bus hubs (PITX, Cubao, Buendia) with 9 routes, and demo trip _"Elyu Surf & Chill Weekend"_ with Bayanihan packing items, PAGASA weather alert, and itemized KKB dinner expense with non-drinker exclusion.
   - Pushed schema to live Neon PostgreSQL database and verified all 15 automated unit tests pass.
   - Resolved CI `test-api` quality gate by defining `db:migrate:test` script (`prisma db push --accept-data-loss && tsx prisma/seed.ts`) in `apps/api/package.json` and monorepo root, ensuring CI ephemeral PostgreSQL container is migrated and seeded before test execution.
+- Implemented **Unit 03 (Auth & Trip Management Engine)**:
+  - Added `passwordHash` to `User` model in `apps/api/prisma/schema.prisma` and re-seeded demo users with bcrypt passwords (`P@ssword123!`).
+  - Implemented secure password hashing (`apps/api/src/lib/password.ts`) and JWT signing & verification (`apps/api/src/lib/jwt.ts`).
+  - Built `authMiddleware` with Bearer token authentication and user hydration.
+  - Built Zod validation schemas for auth registration, login, trip creation, invite code joins, and member preference updates.
+  - Built `AuthService`, `TripService`, `AuthController`, and `TripController` with custom error hierarchy (`BadRequestError`, `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ConflictError`).
+  - Added auto-generation of unique, uppercase barkada invite codes (e.g. `ELYU-XXXX`).
+  - Enforced atomic transaction on trip creation, granting trip creators the `TRIP_LEAD` role automatically.
+  - Implemented member role promotions and preference management (`isDriver`, `vehicleId`, `isNonDrinker`, `dietaryNotes`) with lead and self authorization guards.
+  - Enforced multi-tenant trip boundary protection (403 Forbidden for non-members).
+  - Created 18 automated integration tests in `apps/api/src/__tests__/unit-03-auth-trip.test.ts` (33/33 tests passing monorepo-wide).

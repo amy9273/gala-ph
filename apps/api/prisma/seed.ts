@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import {
   PrismaClient,
   Role,
@@ -429,10 +430,13 @@ async function main() {
   // ==========================================
   // 3. SEED USERS & BARKADA TRIP
   // ==========================================
+  const demoPasswordHash = await bcrypt.hash("P@ssword123!", 10);
+
   const juan = await prisma.user.create({
     data: {
       email: "juan.delacruz@gala-ph.dev",
       name: "Juan Dela Cruz",
+      passwordHash: demoPasswordHash,
       phone: "+639171234567",
       gcashNumber: "09171234567",
       mayaNumber: "09171234567",
@@ -443,6 +447,7 @@ async function main() {
     data: {
       email: "maria.santos@gala-ph.dev",
       name: "Maria Santos",
+      passwordHash: demoPasswordHash,
       phone: "+639189876543",
       gcashNumber: "09189876543",
     },
@@ -452,6 +457,7 @@ async function main() {
     data: {
       email: "carlo.reyes@gala-ph.dev",
       name: "Carlo Reyes",
+      passwordHash: demoPasswordHash,
       phone: "+639205551234",
       gcashNumber: "09205551234",
     },
@@ -461,6 +467,7 @@ async function main() {
     data: {
       email: "bea.alonzo@gala-ph.dev",
       name: "Bea Alonzo",
+      passwordHash: demoPasswordHash,
       phone: "+639998887777",
       gcashNumber: "09998887777",
     },
