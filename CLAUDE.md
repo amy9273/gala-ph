@@ -6,7 +6,7 @@ Read the following files in order before implementing or making any architectura
 2. `context/architecture.md` — System structure, boundaries (API, Web, Mobile), storage model, and invariants.
 3. `context/engineering-best-practices.md` — Master coding, architecture, security, performance, CRUD, and database best practices.
 4. `context/ui-context.md` — Theme, status colors, ergonomics, and anti-slop consistency rules for Web and Mobile.
-5. `context/code-standards.md` — Implementation rules for Node/Express (TypeScript), Next.js, and Flutter/React Native + CI/CD quality gates.
+5. `context/code-standards.md` — Implementation rules for Node/Express (TypeScript), Next.js, and React Native (Expo) + CI/CD quality gates.
 6. `context/ai-workflow-rules.md` — Development workflow, spec adherence, and verification rules.
 7. `context/progress-tracker.md` — Current phase, completed work, open questions, and next steps.
 

@@ -11,7 +11,7 @@ Every AI coding agent and human contributor must follow these rules without exce
 ### Rule 1: Zero Arbitrary Styles (No Magic Numbers or Hex Codes)
 
 - **Web**: NEVER use inline styles (`style={{ color: '#059669' }}`) or arbitrary Tailwind classes like `bg-[#00b4d8]`. Use semantic tokens and Tailwind config tokens only (`bg-brand-ocean`, `text-travel-sunset`, `text-muted-foreground`).
-- **Mobile**: NEVER instantiate ad-hoc colors in widgets (`Color(0xFF00B4D8)`). Always reference `AppTheme.colors(context).brandPrimary` or `AppColors.ocean`.
+- **Mobile (React Native)**: NEVER use ad-hoc inline hex codes in styles (`{ color: '#00B4D8' }`). Always reference design tokens from `theme.colors.brandOcean` or semantic theme constants.
 - **Spacing**: Follow a strict 4px/8px grid system (`p-2`, `p-4`, `p-6`, `gap-4`). No random margins (`mt-[19px]`).
 
 ### Rule 2: The Mandatory 4-State UI Rule

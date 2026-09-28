@@ -24,7 +24,7 @@ An all-in-one group travel operating system tailored specifically for the Philip
 
 - **Backend**: Node.js, Fastify / Express, TypeScript, Prisma ORM, PostgreSQL, Redis, WebSockets.
 - **Web App**: Next.js 15 (App Router), Tailwind CSS, shadcn/ui, TanStack Query, Leaflet / Mapbox.
-- **Mobile App**: React Native (Expo) / Flutter with local SQLite offline persistence.
+- **Mobile App**: React Native (Expo) with local SQLite offline persistence (`expo-sqlite`).
 - **Testing & CI/CD**: Jest, Docker Compose, GitHub Actions workflow with strict typecheck, lint, and service container test suites.
 
 ---

@@ -4,7 +4,7 @@
 
 ## 1. General Engineering Principles
 
-- **Strict Typing**: Zero `any` in TypeScript. Zero untyped `dynamic` maps in Dart.
+- **Strict Typing**: Zero `any` in TypeScript across all packages and apps (API, Web, and Mobile).
 - **Fail Fast & Explicitly**: Validate all inputs at the boundary using schema parsers (Zod in TypeScript).
 - **Separation of Concerns**: Controllers parse HTTP requests; Services execute business logic; Repositories/Prisma handle database queries.
 - **No Console Clutter**: Use structured JSON logging (`pino` or `winston` in API). Never push raw `console.log` statements to production.
@@ -52,15 +52,22 @@ apps/api/src/
 
 ---
 
-## 4. Mobile Standards (Flutter / React Native)
+## 4. Mobile Standards (React Native / Expo)
 
-- **Clean Architecture Pattern**:
-  - `presentation/`: Widgets, screens, and state notifiers.
-  - `domain/`: Pure models, value objects, and repository interfaces.
-  - `data/`: Local SQLite database client, API HTTP service, and sync repositories.
-- **Offline Reliability**:
-  - All screens must load the local SQLite cache first before awaiting network responses.
-  - Mutations (Add Expense, Check Off Item) update local state optimistically, save a sync action to SQLite, and dispatch to the API when network is available.
+- **Framework**: React Native with **Expo** (managed workflow) and TypeScript.
+- **Direct Monorepo Package Integration**:
+  - Directly import business domain types, validation schemas, and integer centavo arithmetic from `@gala-ph/shared`.
+- **Directory Structure (`apps/mobile`)**:
+  - `src/screens/` or `app/`: Screen components and navigation routes.
+  - `src/components/`: Reusable, typed UI components adhering to `context/ui-context.md`.
+  - `src/lib/sqlite/`: `expo-sqlite` database client, migrations, and offline local cache.
+  - `src/services/`: API client, sync queue manager, WebSocket convoy telemetry.
+  - `src/hooks/`: Custom state hooks (e.g. `useOfflineItinerary`, `useConvoyLocation`).
+- **Offline-First & SQLite Reliability**:
+  - All screens must read from the local SQLite cache first before awaiting API network responses.
+  - Offline mutations (Add Expense, Check Off Packing Item) update UI optimistically, record a pending action in SQLite, and dispatch to the API when network connectivity resumes.
+- **4-State UI Rule**:
+  - All screens consuming data must implement the 4-state UI rule (Loading Skeleton, Empty State, Error with Retry, Populated View).
 
 ---
 
