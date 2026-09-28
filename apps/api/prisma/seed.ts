@@ -23,6 +23,7 @@ async function main() {
   console.log("🌱 Starting GalaPH Philippine Travel & Transit Seed...");
 
   // Clean existing tables in reverse dependency order
+  await prisma.todaTariff.deleteMany();
   await prisma.expenseSplit.deleteMany();
   await prisma.itemConsumer.deleteMany();
   await prisma.expenseItem.deleteMany();
@@ -763,6 +764,92 @@ async function main() {
   console.log(
     `✅ Seeded granular KKB expense with Non-Drinker / Allergy exclusion.`,
   );
+
+  // ==========================================
+  // 5. SEED OFFICIAL TODA TARIFFS & DIALECT TIPS
+  // ==========================================
+  const todaTariffsData = [
+    {
+      municipality: "San Juan, La Union",
+      barangayOrZone: "Urbiztondo",
+      routeFrom: "San Juan Town Plaza",
+      routeTo: "Urbiztondo Beachfront",
+      regularFarePerHead: 25.0,
+      specialTripFare: 100.0,
+      nightDiffFare: 120.0,
+      lastTripCurfew: "21:30",
+      dialectTips:
+        "Ilocano tip: Say 'Mano ti plete agpa-Urbiztondo beach?' Regular fare is ₱25/head during the day.",
+    },
+    {
+      municipality: "San Juan, La Union",
+      barangayOrZone: "Tangadan",
+      routeFrom: "San Juan Town Plaza",
+      routeTo: "Tangadan Falls Jump-off (San Gabriel)",
+      regularFarePerHead: 60.0,
+      specialTripFare: 350.0,
+      nightDiffFare: 400.0,
+      lastTripCurfew: "17:00",
+      dialectTips:
+        "Ilocano tip: Tricycles to Tangadan are chartered (Special). Negotiate ₱350 roundtrip including wait time.",
+    },
+    {
+      municipality: "Nasugbu, Batangas",
+      barangayOrZone: "Wawa Port",
+      routeFrom: "Nasugbu Town Proper",
+      routeTo: "Wawa Port (Fortune Island Jump-off)",
+      regularFarePerHead: 20.0,
+      specialTripFare: 80.0,
+      nightDiffFare: 100.0,
+      lastTripCurfew: "20:00",
+      dialectTips:
+        "Batangueño tip: Say 'Bossing, gaano ga ang regular papuntang Wawa? Dalawa lang kami.' Regular is ₱20/head.",
+    },
+    {
+      municipality: "Baler, Aurora",
+      barangayOrZone: "Sabang",
+      routeFrom: "Baler Central Terminal",
+      routeTo: "Sabang Beachfront",
+      regularFarePerHead: 15.0,
+      specialTripFare: 50.0,
+      nightDiffFare: 70.0,
+      lastTripCurfew: "21:00",
+      dialectTips:
+        "Tagalog tip: Tell the driver 'Sabang Beach lang po, regular trip kung may kasabay.' Regular is ₱15/head.",
+    },
+    {
+      municipality: "Moalboal, Cebu",
+      barangayOrZone: "Panagsama",
+      routeFrom: "Moalboal Town Highway",
+      routeTo: "Panagsama Beach (Sardine Run)",
+      regularFarePerHead: 30.0,
+      specialTripFare: 150.0,
+      nightDiffFare: 200.0,
+      lastTripCurfew: "22:00",
+      dialectTips:
+        "Cebuano tip: Say 'Tagpila ang plete padung Panagsama, bay?' Special trike is max ₱150 for 2-3 pax.",
+    },
+    {
+      municipality: "Panglao, Bohol",
+      barangayOrZone: "Alona",
+      routeFrom: "Panglao Town Hall",
+      routeTo: "Alona Beach",
+      regularFarePerHead: 25.0,
+      specialTripFare: 120.0,
+      nightDiffFare: 150.0,
+      lastTripCurfew: "22:00",
+      dialectTips:
+        "Cebuano/Boholano tip: 'Alona Beach ra bay, regular rate.' Never pay more than ₱120 for a special trike.",
+    },
+  ];
+
+  for (const toda of todaTariffsData) {
+    await prisma.todaTariff.create({ data: toda });
+  }
+  console.log(
+    `✅ Seeded ${todaTariffsData.length} official TODA tariffs & dialect negotiation tips.`,
+  );
+
   console.log(`🎉 GalaPH Philippine Travel database seeded successfully!`);
 }
 

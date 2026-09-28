@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { tripController } from "../controllers/trip.controller.js";
 import { tollController } from "../controllers/toll.controller.js";
+import { transitController } from "../controllers/transit.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
@@ -11,6 +12,7 @@ import {
   tripMemberParamSchema,
 } from "../schemas/trip.schema.js";
 import { attachTollEstimateSchema } from "../schemas/toll.schema.js";
+import { attachTransitLegsSchema } from "../schemas/transit.schema.js";
 
 export const tripRouter = Router();
 
@@ -59,4 +61,13 @@ tripRouter.post(
     body: attachTollEstimateSchema,
   }),
   tollController.attachToTrip.bind(tollController),
+);
+
+tripRouter.post(
+  "/:id/transit-legs",
+  validate({
+    params: tripIdParamSchema,
+    body: attachTransitLegsSchema,
+  }),
+  transitController.attachToTrip.bind(transitController),
 );
