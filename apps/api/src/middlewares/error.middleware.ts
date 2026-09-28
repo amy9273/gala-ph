@@ -1,33 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { logger } from "../lib/logger.js";
+import { AppError } from "../errors/AppError.js";
 
-export interface AppErrorOptions {
-  message: string;
-  statusCode: number;
-  code?: string;
-  details?: unknown;
-}
-
-export class AppError extends Error {
-  public readonly statusCode: number;
-  public readonly code: string;
-  public readonly details?: unknown;
-
-  constructor({
-    message,
-    statusCode,
-    code = "INTERNAL_ERROR",
-    details,
-  }: AppErrorOptions) {
-    super(message);
-    this.name = "AppError";
-    this.statusCode = statusCode;
-    this.code = code;
-    this.details = details;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
+export { AppError };
 
 export function errorMiddleware(
   err: Error,

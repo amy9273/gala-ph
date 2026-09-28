@@ -5,6 +5,8 @@ import { env } from "./config/env.js";
 import { correlationMiddleware } from "./middlewares/correlation.middleware.js";
 import { errorMiddleware, AppError } from "./middlewares/error.middleware.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
+import { tripRouter } from "./routes/trip.routes.js";
 
 export function createApp(): Express {
   const app = express();
@@ -22,6 +24,12 @@ export function createApp(): Express {
 
   // API Routes
   app.use("/health", healthRouter);
+  app.use("/api/v1/auth", authRouter);
+  app.use("/api/v1/trips", tripRouter);
+
+  // Aliases for root api access
+  app.use("/auth", authRouter);
+  app.use("/trips", tripRouter);
 
   // Catch-all 404 handler
   app.use((req, _res, next) => {
