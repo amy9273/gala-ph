@@ -35,4 +35,5 @@
 - Built `@gala-ph/shared` with exact integer centavo currency math, Philippine phone validation, and domain enums.
 - Created Express API skeleton in `apps/api` with Zod env validation, correlation tracing, singleton Redis client (`src/lib/redis.ts`), and isolated `/health/live` & `/health/ready` probe endpoints.
 - Documented and instituted Redis namespace invariant (`galaph:*`) for shared Redis environments.
+- Configured local `.env` with Neon PostgreSQL pooler and Redis Cloud connection, wiring `REDIS_KEY_PREFIX="galaph:"` into `ioredis` to ensure complete key isolation from Incident Pulse.
 - Formatted and verified all workspaces (100% Prettier, TypeScript strict check, ESLint, automated API tests passing).
