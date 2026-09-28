@@ -11,6 +11,7 @@ export function getRedisClient(): Redis | null {
 
   if (!redisInstance) {
     redisInstance = new Redis(env.REDIS_URL, {
+      keyPrefix: env.REDIS_KEY_PREFIX,
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 5) {
