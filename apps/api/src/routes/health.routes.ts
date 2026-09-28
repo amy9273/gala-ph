@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { getRedisClient } from "../lib/redis.js";
+import { prisma } from "../lib/prisma.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 
@@ -26,11 +27,28 @@ healthRouter.get("/ready", async (_req: Request, res: Response) => {
     database: "healthy" | "unhealthy" | "disabled";
     redis: "healthy" | "unhealthy" | "disabled";
   } = {
-    database: env.DATABASE_URL ? "healthy" : "disabled",
+    database: "disabled",
     redis: "disabled",
   };
 
   let isReady = true;
+
+  // Check PostgreSQL via Prisma if configured
+  if (env.DATABASE_URL) {
+    try {
+      await Promise.race([
+        prisma.$queryRaw`SELECT 1`,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Database timeout")), 2000),
+        ),
+      ]);
+      checks.database = "healthy";
+    } catch (err) {
+      logger.warn({ err }, "Readiness check: PostgreSQL ping failed");
+      checks.database = "unhealthy";
+      isReady = false;
+    }
+  }
 
   // Check Redis if configured
   const redis = getRedisClient();

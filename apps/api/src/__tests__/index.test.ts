@@ -12,13 +12,14 @@ import {
   isValidPhilippinePhone,
 } from "@gala-ph/shared";
 
-// Teardown hook to cleanly disconnect Redis socket and avoid hanging CI test runners
+// Teardown hook to cleanly disconnect Redis socket & Prisma client to avoid hanging CI test runners
 after(async () => {
   const redis = getRedisClient();
   if (redis) {
     redis.disconnect();
   }
-  setTimeout(() => process.exit(0), 50);
+  const { disconnectPrisma } = await import("../lib/prisma.js");
+  await disconnectPrisma();
 });
 
 describe("Unit 01: API Health Probes & Shared Utilities", () => {

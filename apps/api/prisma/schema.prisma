@@ -1,0 +1,301 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  TRIP_LEAD
+  MEMBER
+  DRIVER
+  COMMUTER
+}
+
+enum TravelMode {
+  PRIVATE_CAR
+  MOTORCYCLE
+  COMMUTE_BUS
+  COMMUTE_VAN
+  HYBRID
+}
+
+enum ExpenseCategory {
+  FOOD_AND_DINING
+  ALCOHOL_AND_BAR
+  TOLL_HIGHWAY
+  FUEL_AND_GAS
+  COMMUTE_TICKET
+  LODGING_RESORT
+  LOCAL_TOUR_GUIDE
+  ENVIRONMENTAL_FEE
+  SHARED_GROCERY
+  MISCELLANEOUS
+}
+
+enum RfidProvider {
+  AUTOSWEEP
+  EASYTRIP
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  phone         String?
+  gcashNumber   String?
+  mayaNumber    String?
+  avatarUrl     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  createdTrips  Trip[]         @relation("TripCreator")
+  memberships   TripMember[]
+  expensesPaid  Expense[]      @relation("ExpensePayer")
+  itemsConsumed ItemConsumer[]
+  splitsOwed    ExpenseSplit[]
+  assignedGear  PackingItem[]  @relation("AssignedGear")
+
+  @@map("users")
+}
+
+model Trip {
+  id             String             @id @default(cuid())
+  title          String
+  destination    String
+  startDate      DateTime
+  endDate        DateTime
+  travelMode     TravelMode         @default(HYBRID)
+  inviteCode     String             @unique
+  createdById    String?
+  createdBy      User?              @relation("TripCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  members        TripMember[]
+  itineraryItems ItineraryItem[]
+  expenses       Expense[]
+  transitLegs    TransitLeg[]
+  tollEstimates  TollEstimate[]
+  packingItems   PackingItem[]
+  weatherAlerts  TripWeatherAlert[]
+
+  @@map("trips")
+}
+
+model TripMember {
+  id           String   @id @default(cuid())
+  tripId       String
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role     @default(MEMBER)
+  vehicleId    String?
+  isDriver     Boolean  @default(false)
+  isNonDrinker Boolean  @default(false)
+  dietaryNotes String?
+  joinedAt     DateTime @default(now())
+
+  @@unique([tripId, userId])
+  @@index([tripId])
+  @@index([userId])
+  @@map("trip_members")
+}
+
+model PackingItem {
+  id           String    @id @default(cuid())
+  tripId       String
+  trip         Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itemName     String
+  category     String    @default("GEAR")
+  quantity     Int       @default(1)
+  assignedToId String?
+  assignedTo   User?     @relation("AssignedGear", fields: [assignedToId], references: [id], onDelete: SetNull)
+  isPacked     Boolean   @default(false)
+  packedAt     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tripId])
+  @@index([assignedToId])
+  @@map("packing_items")
+}
+
+model TripWeatherAlert {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  alertType String
+  severity  String
+  headline  String
+  advisory  String
+  source    String   @default("DOST-PAGASA")
+  issuedAt  DateTime @default(now())
+
+  @@index([tripId])
+  @@map("trip_weather_alerts")
+}
+
+model Expense {
+  id               String          @id @default(cuid())
+  tripId           String
+  trip             Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  paidById         String
+  paidBy           User            @relation("ExpensePayer", fields: [paidById], references: [id], onDelete: Restrict)
+  title            String
+  category         ExpenseCategory
+  totalAmount      Decimal         @db.Decimal(10, 2)
+  totalCentavos    Int?
+  serviceAndTaxFee Decimal         @default(0) @db.Decimal(10, 2)
+  receiptUrl       String?
+  vehicleIdOnly    String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  items            ExpenseItem[]
+  splits           ExpenseSplit[]
+
+  @@index([tripId])
+  @@index([paidById])
+  @@map("expenses")
+}
+
+model ExpenseItem {
+  id            String         @id @default(cuid())
+  expenseId     String
+  expense       Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  name          String
+  price         Decimal        @db.Decimal(10, 2)
+  priceCentavos Int?
+  quantity      Int            @default(1)
+
+  consumers     ItemConsumer[]
+
+  @@index([expenseId])
+  @@map("expense_items")
+}
+
+model ItemConsumer {
+  id            String      @id @default(cuid())
+  expenseItemId String
+  expenseItem   ExpenseItem @relation(fields: [expenseItemId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseItemId, userId])
+  @@index([expenseItemId])
+  @@index([userId])
+  @@map("item_consumers")
+}
+
+model ExpenseSplit {
+  id             String    @id @default(cuid())
+  expenseId      String
+  expense        Expense   @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountOwed     Decimal   @db.Decimal(10, 2)
+  amountCentavos Int?
+  isSettled      Boolean   @default(false)
+  settledAt      DateTime?
+
+  @@unique([expenseId, userId])
+  @@index([expenseId])
+  @@index([userId])
+  @@map("expense_splits")
+}
+
+model TransitLeg {
+  id              String   @id @default(cuid())
+  tripId          String
+  trip            Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  stepNumber      Int
+  modeType        String
+  operatorName    String?
+  origin          String
+  destination     String
+  farePerHead     Decimal  @db.Decimal(10, 2)
+  specialTripFare Decimal? @db.Decimal(10, 2)
+  lastTripTime    String?
+  notes           String?
+
+  @@index([tripId])
+  @@map("transit_legs")
+}
+
+model TollEstimate {
+  id             String   @id @default(cuid())
+  tripId         String
+  trip           Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  expresswayName String
+  rfidProvider   String
+  entryPlaza     String
+  exitPlaza      String
+  classType      Int      @default(1)
+  amount         Decimal  @db.Decimal(10, 2)
+
+  @@index([tripId])
+  @@map("toll_estimates")
+}
+
+model ExpresswayTollRate {
+  id           String       @id @default(cuid())
+  expressway   String
+  rfidProvider RfidProvider
+  entryPlaza   String
+  exitPlaza    String
+  class1Fee    Decimal      @db.Decimal(10, 2)
+  class2Fee    Decimal      @db.Decimal(10, 2)
+  class3Fee    Decimal      @db.Decimal(10, 2)
+
+  @@unique([expressway, entryPlaza, exitPlaza])
+  @@index([expressway])
+  @@map("expressway_toll_rates")
+}
+
+model ProvincialTransitHub {
+  id           String                @id @default(cuid())
+  name         String
+  city         String
+  latitude     Float
+  longitude    Float
+  destinations String
+  routes       ProvincialBusRoute[]
+
+  @@map("provincial_transit_hubs")
+}
+
+model ProvincialBusRoute {
+  id             String               @id @default(cuid())
+  hubId          String
+  hub            ProvincialTransitHub @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  operatorName   String
+  origin         String
+  destination    String
+  serviceType    String
+  estimatedHours Float
+  baseFare       Decimal              @db.Decimal(10, 2)
+  firstTrip      String
+  lastTrip       String
+
+  @@index([hubId])
+  @@map("provincial_bus_routes")
+}
+
+model ItineraryItem {
+  id            String   @id @default(cuid())
+  tripId        String
+  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  dayNumber     Int      @default(1)
+  timeSlot      String
+  activity      String
+  location      String
+  latitude      Float?
+  longitude     Float?
+  estimatedCost Decimal? @db.Decimal(10, 2)
+
+  @@index([tripId])
+  @@map("itinerary_items")
+}

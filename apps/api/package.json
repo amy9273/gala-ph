@@ -10,9 +10,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/__tests__/index.test.ts",
+    "test": "node --import tsx --test src/__tests__/index.test.ts src/__tests__/unit-02-prisma.test.ts",
     "lint": "eslint src --ext .ts",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "db:migrate:test": "prisma db push --accept-data-loss && tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@gala-ph/shared": "*",
