@@ -1,0 +1,182 @@
+name: GalaPH CI/CD Quality Gate
+
+on:
+  push:
+    branches: [main, master, develop, "feat/**", "fix/**"]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Linting, Formatting, & Static Typing
+  # -------------------------------------------------------------
+  lint-and-typecheck:
+    name: Lint & Typecheck (API & Web)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Monorepo Workspaces & Hygiene
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            const fs = require("fs");
+            if (fs.existsSync("apps/mobile/package.json") && fs.existsSync("apps/mobile/pubspec.yaml")) {
+              console.error("ERROR: apps/mobile should not have both package.json and pubspec.yaml.");
+              process.exit(1);
+            }
+            if (Array.isArray(pkg.workspaces) && pkg.workspaces.includes("apps/*")) {
+              console.error("ERROR: package.json workspaces must explicitly list Node workspaces (e.g. apps/api, apps/web) and not include wildcard apps/* to prevent mobile subdirectories from breaking npm ci.");
+              process.exit(1);
+            }
+            console.log("Monorepo workspace validation passed.");
+          '
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: npm run build:shared --if-present
+
+      - name: Generate Prisma Client
+        run: |
+          if [ -f "apps/api/prisma/schema.prisma" ]; then
+            npx prisma generate --schema=apps/api/prisma/schema.prisma
+          fi
+
+      - name: Check code formatting (Prettier)
+        run: npm run format:check
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Typecheck TypeScript Workspaces
+        run: npm run typecheck
+
+  # -------------------------------------------------------------
+  # Job 2: Backend Integration Tests with DB Services
+  # -------------------------------------------------------------
+  test-api:
+    name: Backend Tests (PostgreSQL + Redis)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: gala_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: gala_ph_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gala_user -d gala_ph_test"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: "postgresql://gala_user:test_password@localhost:5432/gala_ph_test?schema=public"
+      REDIS_URL: "redis://localhost:6379"
+      JWT_SECRET: "ci_testing_jwt_secret_key_1234567890"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: npm run build:shared --if-present
+
+      - name: Generate Prisma Client
+        run: |
+          if [ -f "apps/api/prisma/schema.prisma" ]; then
+            npx prisma generate --schema=apps/api/prisma/schema.prisma
+          fi
+
+      - name: Run Prisma Schema Push
+        run: |
+          if [ -f "apps/api/prisma/schema.prisma" ]; then
+            npm run db:migrate:test --workspace=apps/api --if-present
+          fi
+
+      - name: Execute API Integration Tests
+        run: npm run test --workspace=apps/api
+
+  # -------------------------------------------------------------
+  # Job 3: Next.js Production Build Verification
+  # -------------------------------------------------------------
+  build-web:
+    name: Production Build (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: npm run build:shared --if-present
+
+      - name: Build Next.js Application
+        run: npm run build --workspace=apps/web
+        env:
+          NEXT_PUBLIC_API_URL: "http://localhost:5000"
+
+  # -------------------------------------------------------------
+  # Job 4: Unified CI Completion Gate (Branch Protection Check)
+  # -------------------------------------------------------------
+  ci-success:
+    name: All CI Quality Gates Passed
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test-api, build-web]
+    if: always()
+    steps:
+      - name: Evaluate Matrix Status
+        run: |
+          if [ "${{ needs.lint-and-typecheck.result }}" != "success" ] || \
+             [ "${{ needs.test-api.result }}" != "success" ] || \
+             [ "${{ needs.build-web.result }}" != "success" ]; then
+            echo "::error::One or more required CI quality gates failed!"
+            echo "lint-and-typecheck: ${{ needs.lint-and-typecheck.result }}"
+            echo "test-api: ${{ needs.test-api.result }}"
+            echo "build-web: ${{ needs.build-web.result }}"
+            exit 1
+          fi
+          echo "All GalaPH monorepo CI/CD quality gates passed successfully!"
