@@ -1,7 +1,8 @@
-import { describe, it } from "node:test";
+import { after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 import { app } from "../app.js";
+import { getRedisClient } from "../lib/redis.js";
 import {
   pesosToCentavos,
   centavosToPesos,
@@ -10,6 +11,15 @@ import {
   normalizePhilippinePhone,
   isValidPhilippinePhone,
 } from "@gala-ph/shared";
+
+// Teardown hook to cleanly disconnect Redis socket and avoid hanging CI test runners
+after(async () => {
+  const redis = getRedisClient();
+  if (redis) {
+    redis.disconnect();
+  }
+  setTimeout(() => process.exit(0), 50);
+});
 
 describe("Unit 01: API Health Probes & Shared Utilities", () => {
   describe("GET /health/live", () => {
