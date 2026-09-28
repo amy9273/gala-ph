@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 05 Complete (Commuter Transit Router & TODA Tariff Engine)
+## Current Status: Unit 06 Complete (Itemized KKB Consumption Ledger & Debt Graph Solver)
 
 ---
 
@@ -14,8 +14,8 @@
 | **Unit 03: Auth & Trip Management**           | JWT Auth, Trip creation, Member roles (Driver, Commuter, Non-Drinker)                    | ✅ Complete |
 | **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ✅ Complete |
 | **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | ✅ Complete |
-| **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | ⏳ Next     |
-| **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | 📅 Planned  |
+| **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | ✅ Complete |
+| **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | ⏳ Next     |
 | **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | 📅 Planned  |
 | **Unit 09: Interactive Trip Planner Map**     | Interactive Mapbox/Leaflet routing, dual-RFID card, PAGASA weather alert banner          | 📅 Planned  |
 | **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | 📅 Planned  |
@@ -71,3 +71,11 @@
   - Implemented end-to-end multi-leg commuter itinerary planner (`/api/v1/transit/plan-commute`) combining Metro Manila terminal bus legs with first-mile / last-mile TODA tricycle legs, computing per-head and total group fares, curfew advisories, and dialect negotiation tips.
   - Added trip integration endpoint (`POST /api/v1/trips/:id/transit-legs`) with member authorization check to persist commuter itineraries as `TransitLeg` entities.
   - Created 8 automated integration tests in `apps/api/src/__tests__/unit-05-transit-toda.test.ts` (50/50 tests passing monorepo-wide).
+- Implemented **Unit 06 (Itemized KKB Consumption Ledger & Debt Graph Solver)**:
+  - Added `Settlement` model in `apps/api/prisma/schema.prisma` linking payers, recipients, payment methods, and trips.
+  - Built `LedgerService` supporting line-item expenses with individual dish prices, quantities, and selective consumer mappings.
+  - Implemented automatic non-drinker exclusion (`isNonDrinker`) for `ALCOHOL_AND_BAR` items and carpool driver exemption (`isDriver`) for vehicle toll/fuel expenses.
+  - Implemented exact proportional service charge (SC) and local tax apportionment based on each consumer's net food subtotal with fair integer remainder centavo distribution.
+  - Built greedy bilateral debt simplification graph solver (`/api/v1/trips/:id/ledger/settlements`), collapsing $O(N^2)$ bilateral debts into at most $N-1$ direct settlements with pre-populated GCash and Maya recipient payloads.
+  - Added peer-to-peer settlement endpoint (`POST /api/v1/trips/:id/ledger/settle`) updating live net balance tracking with strict conservation of money ($\sum \text{NetBalance} \equiv 0$).
+  - Created 9 automated integration tests in `apps/api/src/__tests__/unit-06-kkb-ledger.test.ts` (59/59 tests passing monorepo-wide).

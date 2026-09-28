@@ -24,6 +24,7 @@ async function main() {
 
   // Clean existing tables in reverse dependency order
   await prisma.todaTariff.deleteMany();
+  await prisma.settlement.deleteMany();
   await prisma.expenseSplit.deleteMany();
   await prisma.itemConsumer.deleteMany();
   await prisma.expenseItem.deleteMany();
