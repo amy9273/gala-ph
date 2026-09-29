@@ -21,6 +21,7 @@ import { TripLedgerView } from "../../../components/ledger/trip-ledger-view";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
+import { toast } from "../../../components/ui/use-toast";
 
 export default function TripDetailPage() {
   const [trip] = useState<TripDetail>(DEMO_TRIP);
@@ -28,19 +29,24 @@ export default function TripDetailPage() {
     "route" | "itinerary" | "ledger" | "weather"
   >("route");
   const [copiedCode, setCopiedCode] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const copyCode = () => {
     navigator.clipboard.writeText(trip.inviteCode);
     setCopiedCode(true);
+    toast({
+      title: "Barkada Code Copied! 📋",
+      description: `Invite code "${trip.inviteCode}" copied to clipboard. Share with your friends!`,
+      variant: "success",
+    });
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const handleAttachTolls = (breakdown: TollBreakdown) => {
-    setToastMessage(
-      `✅ Expressway toll load of ₱${breakdown.combinedTollTotal.toFixed(2)} attached to trip expenses!`,
-    );
-    setTimeout(() => setToastMessage(null), 3500);
+    toast({
+      title: "Toll Attached to Trip",
+      description: `₱${breakdown.combinedTollTotal.toFixed(2)} attached to trip expenses!`,
+      variant: "success",
+    });
   };
 
   const startDate = new Date(trip.startDate).toLocaleDateString("en-US", {
@@ -172,12 +178,6 @@ export default function TripDetailPage() {
           </div>
         </div>
       </div>
-
-      {toastMessage && (
-        <div className="rounded-2xl bg-nature-emerald/10 border border-nature-emerald/30 p-4 text-xs font-bold text-nature-emerald animate-in fade-in">
-          {toastMessage}
-        </div>
-      )}
 
       {/* DOST-PAGASA Weather Alert Banner */}
       <WeatherAlertBanner

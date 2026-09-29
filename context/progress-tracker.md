@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 15 Complete (Automated Testing & CI/CD Pipeline)
+## Current Status: Unit 16 Complete (UI/UX Ergonomics & Polish) — Monorepo Feature-Complete
 
 ---
 
@@ -24,7 +24,7 @@
 | **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | ✅ Complete |
 | **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | ✅ Complete |
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest/node test suites, quality gate verification                | ✅ Complete |
-| **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | ⏳ Next     |
+| **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | ✅ Complete |
 
 ---
 
@@ -156,3 +156,11 @@
   - Added dedicated test scripts across all workspace `package.json` configurations and root `package.json` (`test:shared`, `test:api`, `test:mobile`, `test:web`).
   - Upgraded GitHub Actions CI/CD workflow (`.github/workflows/ci.yml`) with parallel matrix execution: Monorepo linting & formatting, strict TypeScript typechecking across workspaces, shared package tests, API integration tests with live PostgreSQL 16 & Redis 7 services, mobile SQLite & telemetry tests, web logic tests, Next.js static production build, and unified completion gate (`ci-success`).
   - Successfully verified full 109-test monorepo test suite across all 4 workspaces (`@gala-ph/shared`, `apps/api`, `apps/mobile`, `apps/web`) with 100% pass rate, 0 type errors, 0 ESLint errors, and clean Prettier formatting.
+- Implemented **Unit 16 (UI/UX Ergonomics & Polish)**:
+  - Created Unit 16 specification in `context/specs/16-ui-ux-ergonomics-polish.md`.
+  - Built Web Toast notification system (`apps/web/src/components/ui/toast.tsx` and `apps/web/src/components/ui/use-toast.ts`) with custom semantic variants (`default`, `success`, `destructive`, `sunset`, `info`), micro-animations, Lucide status icons, and screen-reader accessibility.
+  - Built web 4-state UI primitives (`<EmptyState />`, `<ErrorState />`, `<Skeleton />`) ensuring consistent loading, empty, error, and populated views across all pages.
+  - Connected interactive toast feedback across key user workflows: copying barkada invite code, copying payment reference numbers & GCash/Maya mobile numbers, attaching expressway toll calculations to trip ledger, logging itemized expenses, and submitting community TODA tariffs.
+  - Verified high-glare sunlight contrast compliance (WCAG AAA $\ge 7:1$) on monetary values, route timelines, and mobile in-car speedometer HUD elements.
+  - Created automated test suite (`apps/web/src/__tests__/ui-ergonomics.test.ts`) validating toast state machine, 4-state screen resolution contracts, and minimum $48\text{dp} / 56\text{dp}$ touch target compliance (4/4 passing).
+  - Verified complete monorepo quality loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 113/113 passing automated tests (`npm test`).

@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { CreditCard, Fuel, Sparkles, ArrowRight, Zap } from "lucide-react";
+import {
+  CreditCard,
+  Fuel,
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Copy,
+} from "lucide-react";
 import { formatPHP } from "@gala-ph/shared";
 import {
   TollBreakdown,
@@ -12,6 +19,7 @@ import {
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import { toast } from "../ui/use-toast";
 
 export interface TollBreakdownCardProps {
   initialRouteId?: string;
@@ -303,19 +311,44 @@ export function TollBreakdownCard({
           </div>
         </div>
 
-        {onSaveToTrip && (
-          <div className="mt-6 pt-4 border-t border-border flex justify-end">
+        <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const summaryText = `🚗 GalaPH Toll Breakdown: ${breakdown.routeName}\n🛣️ Combined Tolls: ₱${breakdown.combinedTollTotal}\n💳 Autosweep (SLEX/TPLEX): ₱${breakdown.autosweep.total} (Reload ₱${breakdown.autosweep.recommendedReload})\n💳 Easytrip (NLEX/SCTEX): ₱${breakdown.easytrip.total} (Reload ₱${breakdown.easytrip.recommendedReload})\n⛽ Est. Fuel (${breakdown.estimatedFuel.distanceKm} km): ₱${breakdown.estimatedFuel.fuelCost}\n💰 Total Road Cost: ₱${breakdown.totalEstimatedRoadCost}`;
+              navigator.clipboard.writeText(summaryText);
+              toast({
+                title: "Toll Summary Copied",
+                description: `${breakdown.routeName} reload numbers copied to clipboard.`,
+                variant: "success",
+              });
+            }}
+            className="gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            <span>Copy Toll &amp; Reload Summary</span>
+          </Button>
+
+          {onSaveToTrip && (
             <Button
-              variant="default"
+              variant="sunset"
               size="sm"
-              onClick={() => onSaveToTrip(breakdown)}
+              onClick={() => {
+                onSaveToTrip(breakdown);
+                toast({
+                  title: "Toll Attached to Trip",
+                  description: `₱${breakdown.combinedTollTotal} attached to trip budget.`,
+                  variant: "success",
+                });
+              }}
               className="gap-2"
             >
               <Zap className="h-4 w-4" />
               <span>Attach Tolls to Trip Expense</span>
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </Card>
     </div>
   );

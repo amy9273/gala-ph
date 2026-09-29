@@ -11,6 +11,7 @@ import {
   calculateItemizedSplits,
 } from "../../lib/api";
 import { Button } from "../ui/button";
+import { toast } from "../ui/use-toast";
 
 export interface CreateExpenseModalProps {
   isOpen: boolean;
@@ -172,6 +173,11 @@ export function CreateExpenseModal({
     };
 
     onSubmit(newExpense);
+    toast({
+      title: "KKB Expense Created",
+      description: `"${newExpense.title}" (₱${newExpense.totalAmount.toFixed(2)}) split and added to ledger.`,
+      variant: "success",
+    });
     onClose();
   };
 

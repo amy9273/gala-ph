@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, PlusCircle, ShieldCheck } from "lucide-react";
 import { TodaTariff } from "../../lib/api";
 import { Button } from "../ui/button";
+import { toast } from "../ui/use-toast";
 
 export interface SubmitTariffModalProps {
   isOpen: boolean;
@@ -67,6 +68,11 @@ export function SubmitTariffModal({
     };
 
     onSubmit(tariff);
+    toast({
+      title: "TODA Tariff Submitted",
+      description: `₱${tariff.specialTripFare} special fare for ${tariff.municipality} → ${tariff.destination} submitted to community wiki.`,
+      variant: "success",
+    });
     onClose();
   };
 

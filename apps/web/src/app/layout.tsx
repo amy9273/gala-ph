@@ -6,6 +6,7 @@ import { ThemeProvider } from "../components/providers/theme-provider";
 import { QueryProvider } from "../components/providers/query-provider";
 import { Navbar } from "../components/navigation/navbar";
 import { Footer } from "../components/navigation/footer";
+import { ToastContainer } from "../components/ui/toast";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default function RootLayout({
             <Navbar />
             <div className="flex-1">{children}</div>
             <Footer />
+            <ToastContainer />
           </QueryProvider>
         </ThemeProvider>
       </body>
