@@ -6,6 +6,7 @@
   "description": "Philippine Barkada Travel & Itemized Consumption Ledger Platform",
   "workspaces": [
     "apps/api",
+    "apps/mobile",
     "apps/web",
     "packages/*"
   ],
@@ -13,13 +14,15 @@
     "postinstall": "node -e \"const fs = require('fs'); if (fs.existsSync('apps/api/prisma/schema.prisma')) { require('child_process').execSync('npm run prisma:generate --workspace=apps/api', { stdio: 'inherit' }); }\"",
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
     "build:shared": "npm run build --workspace=packages/shared",
     "build:api": "npm run build --workspace=apps/api",
     "build:web": "npm run build --workspace=apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test:api",
+    "test": "npm run test:api && npm run test:mobile",
     "test:api": "npm run test --workspace=apps/api",
+    "test:mobile": "npm run test --workspace=apps/mobile",
     "db:migrate:test": "npm run db:migrate:test --workspace=apps/api",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\""
