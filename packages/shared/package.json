@@ -16,6 +16,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
+    "test": "tsx --test src/__tests__/*.test.ts",
     "clean": "rimraf dist"
   },
   "devDependencies": {
