@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
+import { toast } from "../ui/use-toast";
 
 export interface CreateTripModalProps {
   isOpen: boolean;
@@ -42,6 +43,11 @@ export function CreateTripModal({
       endDate: new Date(endDate).toISOString(),
       travelMode,
       inviteCode: customInviteCode.trim() || undefined,
+    });
+    toast({
+      title: "Barkada Trip Created! 🌴",
+      description: `"${title.trim()}" to ${destination.trim()} is ready for planning.`,
+      variant: "success",
     });
     onClose();
   };

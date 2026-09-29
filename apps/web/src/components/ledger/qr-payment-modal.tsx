@@ -12,6 +12,7 @@ import {
 import { formatPHP } from "@gala-ph/shared";
 import { DebtSettlement } from "../../lib/api";
 import { Button } from "../ui/button";
+import { toast } from "../ui/use-toast";
 
 export interface QRPaymentModalProps {
   settlement: DebtSettlement | null;
@@ -39,11 +40,21 @@ export function QRPaymentModal({
   const copyText = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
+    toast({
+      title: `${field === "phone" ? walletType + " Number" : "Payment Reference"} Copied`,
+      description: text,
+      variant: "success",
+    });
     setTimeout(() => setCopiedField(null), 2000);
   };
 
   const handleSettle = () => {
     onConfirmSettlement(settlement.id);
+    toast({
+      title: "Settlement Confirmed",
+      description: `Payment of ${formatPHP(settlement.amount, false)} to ${settlement.toUserName} recorded.`,
+      variant: "success",
+    });
     onClose();
   };
 

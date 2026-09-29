@@ -6,6 +6,7 @@ import { DEMO_TRIP, TripDetail } from "../../lib/api";
 import { TripCard } from "../../components/trips/trip-card";
 import { CreateTripModal } from "../../components/trips/create-trip-modal";
 import { Button } from "../../components/ui/button";
+import { toast } from "../../components/ui/use-toast";
 
 export default function TripsPage() {
   const [trips, setTrips] = useState<TripDetail[]>([
@@ -43,7 +44,6 @@ export default function TripsPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [joinCodeInput, setJoinCodeInput] = useState("");
-  const [joinMessage, setJoinMessage] = useState<string | null>(null);
 
   const handleCreateTrip = (data: {
     title: string;
@@ -88,11 +88,13 @@ export default function TripsPage() {
     e.preventDefault();
     if (!joinCodeInput.trim()) return;
 
-    setJoinMessage(
-      `🎉 Joined trip with code "${joinCodeInput.toUpperCase()}"!`,
-    );
+    const code = joinCodeInput.toUpperCase().trim();
+    toast({
+      title: "Joined Barkada Trip! 🎒",
+      description: `Successfully joined trip with invite code "${code}".`,
+      variant: "success",
+    });
     setJoinCodeInput("");
-    setTimeout(() => setJoinMessage(null), 3500);
   };
 
   return (
@@ -166,12 +168,6 @@ export default function TripsPage() {
           </Button>
         </form>
       </div>
-
-      {joinMessage && (
-        <div className="rounded-xl bg-nature-emerald/10 border border-nature-emerald/30 p-3 text-xs font-bold text-nature-emerald animate-in fade-in">
-          {joinMessage}
-        </div>
-      )}
 
       {/* Trips Grid */}
       <div className="space-y-4">
