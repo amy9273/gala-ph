@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 11 Complete (Crowdsourced TODA Wiki UI & Provincial Travel Directory)
+## Current Status: Unit 12 Complete (Mobile Scaffold & Offline SQLite Engine)
 
 ---
 
@@ -20,8 +20,8 @@
 | **Unit 09: Interactive Trip Planner Map**     | Interactive routing, dual-RFID card, PAGASA weather alert banner, trip planner           | ✅ Complete |
 | **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | ✅ Complete |
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | ✅ Complete |
-| **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | ⏳ Next     |
-| **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | 📅 Planned  |
+| **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | ✅ Complete |
+| **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | ⏳ Next     |
 | **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | 📅 Planned  |
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest test suites, quality gate verification                     | 📅 Planned  |
 | **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | 📅 Planned  |
@@ -112,3 +112,18 @@
   - Built `<TripLedgerView />` in `apps/web/src/components/ledger/trip-ledger-view.tsx` with spend metrics bento, category filters, expense feed, and debt settlement hub.
   - Built standalone KKB Master Ledger page (`/ledger` in `apps/web/src/app/ledger/page.tsx`) and integrated direct KKB Ledger tab inside the trip planner detail page (`/trips/[id]`).
   - Verified full quality checks: 100% Prettier formatting (`npm run format:check`), 0 type errors across monorepo workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 76/76 passing automated tests.
+- Implemented **Unit 11 (Crowdsourced TODA Wiki UI & Provincial Travel Directory)**:
+  - Created Unit 11 specification in `context/specs/11-crowdsourced-toda-wiki-ui.md`.
+  - Added seed TODA route tariffs across San Juan Elyu, Nasugbu Batangas, Baler Aurora, Moalboal Cebu, Panglao Bohol, and Baguio City with dialect bargaining cheat sheets and environmental fees.
+  - Built `<TodaTariffCard />`, `<CommutePlannerCard />`, `<DialectCheatSheet />`, `<SubmitTariffModal />`, and `/transit` hub page.
+- Implemented **Unit 12 (Mobile Scaffold & Offline SQLite Persistence Engine)**:
+  - Created Unit 12 specification in `context/specs/12-mobile-scaffold-offline-sqlite.md`.
+  - Configured `@gala-ph/mobile` workspace using React Native and Expo with TypeScript, sharing `@gala-ph/shared` business logic and exact integer centavo currency math.
+  - Built Philippine Travel Mobile Design System (`apps/mobile/src/theme/`) with semantic colors (`brandOcean`, `accentSunset`, `natureEmerald`, `autosweep`, `easytrip`, `darkBackground` obsidian) and $48\text{dp} / 56\text{dp}$ touch targets.
+  - Implemented the mandatory 4-state UI rule primitives (`<SkeletonLoader />`, `<EmptyState />`, `<ErrorState />`, `<Badge />`, `<Button />`, `<Card />`, `<CurrencyDisplay />`, `<NetworkStatusBar />`).
+  - Built offline-first SQLite database client (`apps/mobile/src/lib/sqlite/db.ts`, `schema.ts`) and repository layer for trips, itinerary timeline, Bayanihan packing items, and KKB expenses.
+  - Built `OutboxSyncService` (`apps/mobile/src/services/outbox-sync.service.ts`) with idempotent mutation queueing (`outbox_mutations`), optimistic UI state transitions, and background cache hydration.
+  - Built mobile feature screens: `TripOverviewScreen`, `ItineraryScreen`, `PackingScreen` with 1-tap check-off, `ExpensesScreen` with non-drinker exclusion toggles, and `SyncQueueScreen` outbox monitor.
+  - Added bottom tab navigation dock (`<BottomTabBar />`) optimized for one-handed road trip thumb ergonomics.
+  - Created automated test suite (`apps/mobile/src/__tests__/offline-sqlite-engine.test.ts`) verifying schema hydration, optimistic Bayanihan toggling, offline expense creation, and outbox synchronization.
+  - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 80/80 passing tests (`npm test`).
