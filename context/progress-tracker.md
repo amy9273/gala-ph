@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 12 Complete (Mobile Scaffold & Offline SQLite Engine)
+## Current Status: Unit 13 Complete (Mobile Camera Receipt Scanner & Touch-to-Tag Splitter)
 
 ---
 
@@ -21,8 +21,8 @@
 | **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | ✅ Complete |
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | ✅ Complete |
 | **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | ✅ Complete |
-| **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | ⏳ Next     |
-| **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | 📅 Planned  |
+| **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | ✅ Complete |
+| **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | ⏳ Next     |
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest test suites, quality gate verification                     | 📅 Planned  |
 | **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | 📅 Planned  |
 
@@ -125,5 +125,14 @@
   - Built `OutboxSyncService` (`apps/mobile/src/services/outbox-sync.service.ts`) with idempotent mutation queueing (`outbox_mutations`), optimistic UI state transitions, and background cache hydration.
   - Built mobile feature screens: `TripOverviewScreen`, `ItineraryScreen`, `PackingScreen` with 1-tap check-off, `ExpensesScreen` with non-drinker exclusion toggles, and `SyncQueueScreen` outbox monitor.
   - Added bottom tab navigation dock (`<BottomTabBar />`) optimized for one-handed road trip thumb ergonomics.
-  - Created automated test suite (`apps/mobile/src/__tests__/offline-sqlite-engine.test.ts`) verifying schema hydration, optimistic Bayanihan toggling, offline expense creation, and outbox synchronization.
-  - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 80/80 passing tests (`npm test`).
+  - Implemented **Unit 13 (Mobile Camera Receipt Scanner & Touch-to-Tag Splitter)**:
+  - Created Unit 13 specification in `context/specs/13-mobile-camera-receipt-scanner.md`.
+  - Built Philippine dining receipt OCR parser (`ReceiptOcrService` in `apps/mobile/src/services/receipt-ocr.service.ts`) extracting merchant name, dates, line items, quantities, unit prices, subtotal, service charges (SC), and taxes with exact integer centavo math.
+  - Implemented alcohol keyword detector heuristics (`BEER`, `SAN MIGUEL`, `RED HORSE`, `GIN`, `RUM`, `COCKTAIL`, `TEQUILA`, `VODKA`, `WHISKEY`, `WINE`, `SOJU`, `RH`, `SMB`) to flag alcoholic items for non-drinker protection.
+  - Built `<LineItemAssigner />` (`apps/mobile/src/components/receipt/LineItemAssigner.tsx`) with touch-to-tag eater avatar chips, alcohol tags, and 1-tap quick action presets ("Select All", "Drinkers Only" excluding non-drinkers, "Clear All").
+  - Built `<ReceiptSplitPreview />` (`apps/mobile/src/components/receipt/ReceiptSplitPreview.tsx`) displaying real-time proportional service charge and tax distribution with 100% mathematical conservation of money ($\sum \text{splits} \equiv \text{total}$).
+  - Built `<ReceiptReviewModal />` (`apps/mobile/src/components/receipt/ReceiptReviewModal.tsx`) with merchant name editing, line-item price adjustments, payer selection, and 1-tap optimistic SQLite persistence via `ExpenseRepository` and `OutboxSyncService`.
+  - Built camera viewfinder screen (`ReceiptScannerScreen.tsx` in `apps/mobile/src/screens/ReceiptScannerScreen.tsx`) with frame overlay guide, torch toggle, $56\text{dp}$ shutter button, and sample Philippine receipt presets (Tagpuan San Juan, Kahuna Beach Resort, Baler Surfside Grill).
+  - Integrated `scanner` tab into `BottomTabBar.tsx` and main navigation container in `apps/mobile/src/App.tsx`.
+  - Created automated test suite (`apps/mobile/src/__tests__/receipt-ocr-scanner.test.ts`) validating OCR line-item extraction, alcohol tagging, non-drinker exemption, proportional SC/tax distribution, and SQLite outbox mutation enqueueing.
+  - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 84/84 passing tests (`npm test`).

@@ -7,6 +7,7 @@ import { TripOverviewScreen } from "./screens/TripOverviewScreen";
 import { ItineraryScreen } from "./screens/ItineraryScreen";
 import { PackingScreen } from "./screens/PackingScreen";
 import { ExpensesScreen } from "./screens/ExpensesScreen";
+import { ReceiptScannerScreen } from "./screens/ReceiptScannerScreen";
 import { SyncQueueScreen } from "./screens/SyncQueueScreen";
 import { outboxSyncService } from "./services/outbox-sync.service";
 import type { NetworkConnectionState } from "./types";
@@ -35,6 +36,12 @@ export default function App() {
         return <TripOverviewScreen onNavigateTab={setActiveTab} />;
       case "itinerary":
         return <ItineraryScreen />;
+      case "scanner":
+        return (
+          <ReceiptScannerScreen
+            onNavigateToLedger={() => setActiveTab("expenses")}
+          />
+        );
       case "packing":
         return <PackingScreen />;
       case "expenses":

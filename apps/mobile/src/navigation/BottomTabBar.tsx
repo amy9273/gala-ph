@@ -4,7 +4,8 @@ import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
 import { AppTypography } from "../theme/typography";
 
-export type TabKey = "overview" | "itinerary" | "packing" | "expenses" | "sync";
+export type TabKey =
+  "overview" | "itinerary" | "packing" | "expenses" | "scanner" | "sync";
 
 interface TabItem {
   key: TabKey;
@@ -15,6 +16,7 @@ interface TabItem {
 const TABS: TabItem[] = [
   { key: "overview", label: "Trip", icon: "🏝️" },
   { key: "itinerary", label: "Itinerary", icon: "🗺️" },
+  { key: "scanner", label: "Scan OCR", icon: "📸" },
   { key: "packing", label: "Packing", icon: "🎒" },
   { key: "expenses", label: "Ledger", icon: "🧾" },
   { key: "sync", label: "Outbox", icon: "⚡" },
