@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/__tests__/index.test.ts src/__tests__/unit-02-prisma.test.ts src/__tests__/unit-03-auth-trip.test.ts src/__tests__/unit-04-toll-fuel.test.ts src/__tests__/unit-05-transit-toda.test.ts src/__tests__/unit-06-kkb-ledger.test.ts",
+    "test": "node --import tsx --test src/__tests__/index.test.ts src/__tests__/unit-02-prisma.test.ts src/__tests__/unit-03-auth-trip.test.ts src/__tests__/unit-04-toll-fuel.test.ts src/__tests__/unit-05-transit-toda.test.ts src/__tests__/unit-06-kkb-ledger.test.ts src/__tests__/unit-07-convoy-packing.test.ts",
     "lint": "eslint src --ext .ts",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@gala-ph/shared": "*",
     "@prisma/client": "^6.4.1",
+    "@types/ws": "^8.18.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -32,6 +33,7 @@
     "pg": "^8.13.3",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
+    "ws": "^8.22.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

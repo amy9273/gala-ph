@@ -2,6 +2,10 @@ import { app } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./lib/logger.js";
 import { getRedisClient } from "./lib/redis.js";
+import {
+  initWebSocketServer,
+  closeWebSocketServer,
+} from "./sockets/socket.server.js";
 
 const server = app.listen(env.PORT, () => {
   logger.info(
@@ -9,8 +13,14 @@ const server = app.listen(env.PORT, () => {
   );
 });
 
+// Initialize WebSocket hub on the HTTP server
+initWebSocketServer(server);
+
 async function shutdown(signal: string) {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
+
+  await closeWebSocketServer();
+  logger.info("WebSocket server closed.");
 
   server.close(async () => {
     logger.info("HTTP server closed.");

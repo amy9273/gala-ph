@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 06 Complete (Itemized KKB Consumption Ledger & Debt Graph Solver)
+## Current Status: Unit 07 Complete (Realtime Convoy & Packing Sync)
 
 ---
 
@@ -15,8 +15,8 @@
 | **Unit 04: Toll & Fuel Engine**               | Autosweep vs Easytrip calculator, Class 1-3 toll matrices, Fuel estimator                | ✅ Complete |
 | **Unit 05: Commuter Transit & TODA Engine**   | Provincial transit router, TODA fare matrix, dialect negotiation tips                    | ✅ Complete |
 | **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | ✅ Complete |
-| **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | ⏳ Next     |
-| **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | 📅 Planned  |
+| **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | ✅ Complete |
+| **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | ⏳ Next     |
 | **Unit 09: Interactive Trip Planner Map**     | Interactive Mapbox/Leaflet routing, dual-RFID card, PAGASA weather alert banner          | 📅 Planned  |
 | **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | 📅 Planned  |
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | 📅 Planned  |
@@ -79,3 +79,10 @@
   - Built greedy bilateral debt simplification graph solver (`/api/v1/trips/:id/ledger/settlements`), collapsing $O(N^2)$ bilateral debts into at most $N-1$ direct settlements with pre-populated GCash and Maya recipient payloads.
   - Added peer-to-peer settlement endpoint (`POST /api/v1/trips/:id/ledger/settle`) updating live net balance tracking with strict conservation of money ($\sum \text{NetBalance} \equiv 0$).
   - Created 9 automated integration tests in `apps/api/src/__tests__/unit-06-kkb-ledger.test.ts` (59/59 tests passing monorepo-wide).
+- Implemented **Unit 07 (Realtime Convoy & Packing Sync)**:
+  - Built `PackingService` and `PackingController` supporting Bayanihan shared gear checklists, assignable trip members, category categorization (`GEAR`, `FOOD_DRINKS`, `MEDICAL`, `COMFORT`, `DOCUMENTS`, `MISCELLANEOUS`), quantity tracking, and 1-tap packed/unpacked state toggling with timestamps and progress metrics (`GET/POST/PATCH/DELETE /api/v1/trips/:id/packing`).
+  - Added Haversine great-circle distance calculators (`calculateHaversineDistanceKm`, `calculateHaversineDistanceMeters`), convoy telemetry schemas, and SOS alert data types in `@gala-ph/shared`.
+  - Built `ConvoyService` and `ConvoyController` for live GPS beacon streaming with ephemeral 60s Redis storage (`galaph:convoy:beacon:<tripId>:<userId>`), in-memory fallback, multi-vehicle spread computation, and automated straggler advisories when convoy vehicles separate $> 5\text{km}$.
+  - Implemented emergency roadside SOS beacon broadcast and resolution workflow (`POST /api/v1/trips/:id/convoy/sos` and `POST /api/v1/trips/:id/convoy/sos/resolve`) stored with 24h TTL in Redis (`galaph:convoy:sos:<tripId>:<alertId>`).
+  - Built native WebSocket Hub (`apps/api/src/sockets/socket.server.ts`) with JWT handshake authentication, dynamic trip room subscriptions (`JOIN_TRIP`/`LEAVE_TRIP`), 30s heartbeat monitoring, and real-time event broadcasting (`PACKING_ITEM_ADDED`, `PACKING_ITEM_UPDATED`, `PACKING_ITEM_TOGGLED`, `PACKING_ITEM_DELETED`, `CONVOY_LOCATION_UPDATE`, `CONVOY_STRAGGLER_ALERT`, `CONVOY_SOS_ALERT`, `CONVOY_SOS_RESOLVED`).
+  - Created 17 automated integration tests in `apps/api/src/__tests__/unit-07-convoy-packing.test.ts` (76/76 tests passing monorepo-wide).

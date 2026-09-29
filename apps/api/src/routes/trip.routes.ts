@@ -3,6 +3,8 @@ import { tripController } from "../controllers/trip.controller.js";
 import { tollController } from "../controllers/toll.controller.js";
 import { transitController } from "../controllers/transit.controller.js";
 import { ledgerController } from "../controllers/ledger.controller.js";
+import { packingController } from "../controllers/packing.controller.js";
+import { convoyController } from "../controllers/convoy.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
@@ -19,6 +21,16 @@ import {
   SettleDebtSchema,
   ExpenseIdParamSchema,
 } from "../schemas/ledger.schema.js";
+import {
+  CreatePackingItemSchema,
+  UpdatePackingItemSchema,
+  PackingItemIdParamSchema,
+} from "../schemas/packing.schema.js";
+import {
+  ConvoyPingSchema,
+  ConvoySosSchema,
+  ConvoySosResolveSchema,
+} from "../schemas/convoy.schema.js";
 
 export const tripRouter = Router();
 
@@ -121,4 +133,89 @@ tripRouter.post(
     body: SettleDebtSchema,
   }),
   ledgerController.settleDebt.bind(ledgerController),
+);
+
+// ==========================================
+// Bayanihan Shared Packing Checklist Routes
+// ==========================================
+tripRouter.get(
+  "/:id/packing",
+  validate({ params: tripIdParamSchema }),
+  packingController.getPackingList.bind(packingController),
+);
+
+tripRouter.post(
+  "/:id/packing",
+  validate({
+    params: tripIdParamSchema,
+    body: CreatePackingItemSchema,
+  }),
+  packingController.createPackingItem.bind(packingController),
+);
+
+tripRouter.patch(
+  "/:id/packing/:itemId",
+  validate({
+    params: PackingItemIdParamSchema,
+    body: UpdatePackingItemSchema,
+  }),
+  packingController.updatePackingItem.bind(packingController),
+);
+
+tripRouter.patch(
+  "/:id/packing/:itemId/toggle",
+  validate({
+    params: PackingItemIdParamSchema,
+  }),
+  packingController.togglePackingItem.bind(packingController),
+);
+
+tripRouter.delete(
+  "/:id/packing/:itemId",
+  validate({
+    params: PackingItemIdParamSchema,
+  }),
+  packingController.deletePackingItem.bind(packingController),
+);
+
+// ==========================================
+// Live Convoy GPS Telemetry & SOS Beacon Routes
+// ==========================================
+tripRouter.get(
+  "/:id/convoy/locations",
+  validate({ params: tripIdParamSchema }),
+  convoyController.getActiveLocations.bind(convoyController),
+);
+
+tripRouter.post(
+  "/:id/convoy/ping",
+  validate({
+    params: tripIdParamSchema,
+    body: ConvoyPingSchema,
+  }),
+  convoyController.sendPing.bind(convoyController),
+);
+
+tripRouter.post(
+  "/:id/convoy/sos",
+  validate({
+    params: tripIdParamSchema,
+    body: ConvoySosSchema,
+  }),
+  convoyController.triggerSos.bind(convoyController),
+);
+
+tripRouter.post(
+  "/:id/convoy/sos/resolve",
+  validate({
+    params: tripIdParamSchema,
+    body: ConvoySosResolveSchema,
+  }),
+  convoyController.resolveSos.bind(convoyController),
+);
+
+tripRouter.get(
+  "/:id/convoy/sos",
+  validate({ params: tripIdParamSchema }),
+  convoyController.getSosAlerts.bind(convoyController),
 );
