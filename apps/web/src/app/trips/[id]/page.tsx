@@ -17,15 +17,16 @@ import { RouteMap } from "../../../components/map/route-map";
 import { TollBreakdownCard } from "../../../components/toll/toll-breakdown-card";
 import { WeatherAlertBanner } from "../../../components/weather/weather-alert-banner";
 import { ItineraryTimeline } from "../../../components/trips/itinerary-timeline";
+import { TripLedgerView } from "../../../components/ledger/trip-ledger-view";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 
 export default function TripDetailPage() {
   const [trip] = useState<TripDetail>(DEMO_TRIP);
-  const [activeTab, setActiveTab] = useState<"route" | "itinerary" | "weather">(
-    "route",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "route" | "itinerary" | "ledger" | "weather"
+  >("route");
   const [copiedCode, setCopiedCode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -189,13 +190,16 @@ export default function TripDetailPage() {
         {[
           { id: "route", label: "🗺️ Route & Expressway Tolls" },
           { id: "itinerary", label: "📅 Itinerary Schedule" },
+          { id: "ledger", label: "🧾 KKB Ledger & Splits" },
           { id: "weather", label: "🌦️ PAGASA Weather Advisory" },
         ].map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() =>
-              setActiveTab(tab.id as "route" | "itinerary" | "weather")
+              setActiveTab(
+                tab.id as "route" | "itinerary" | "ledger" | "weather",
+              )
             }
             className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeTab === tab.id
@@ -225,6 +229,8 @@ export default function TripDetailPage() {
       {activeTab === "itinerary" && (
         <ItineraryTimeline items={trip.itineraryItems} />
       )}
+
+      {activeTab === "ledger" && <TripLedgerView trip={trip} />}
 
       {activeTab === "weather" && (
         <Card className="space-y-4">
