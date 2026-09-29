@@ -50,7 +50,8 @@ export const PackingCategorySchema = z.enum([
   "FOOD_DRINKS",
   "MEDICAL",
   "COMFORT",
-  "OTHER",
+  "DOCUMENTS",
+  "MISCELLANEOUS",
 ]);
 export type PackingCategory = z.infer<typeof PackingCategorySchema>;
 
@@ -60,6 +61,48 @@ export const WeatherAlertSeveritySchema = z.enum([
   "CRITICAL",
 ]);
 export type WeatherAlertSeverity = z.infer<typeof WeatherAlertSeveritySchema>;
+
+export const ConvoySosReasonSchema = z.enum([
+  "FLAT_TIRE",
+  "OVERHEAT",
+  "ACCIDENT",
+  "POLICE_CHECKPOINT",
+  "MEDICAL_EMERGENCY",
+  "LOST_ROUTE",
+  "OTHER",
+]);
+export type ConvoySosReason = z.infer<typeof ConvoySosReasonSchema>;
+
+export const ConvoyBeaconSchema = z.object({
+  tripId: z.string(),
+  userId: z.string(),
+  userName: z.string().optional(),
+  vehicleId: z.string().optional(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  speedKmh: z.number().nonnegative().optional(),
+  heading: z.number().min(0).max(360).optional(),
+  batteryLevel: z.number().min(0).max(100).optional(),
+  updatedAt: z.string(),
+});
+export type ConvoyBeacon = z.infer<typeof ConvoyBeaconSchema>;
+
+export const ConvoySosAlertSchema = z.object({
+  id: z.string(),
+  tripId: z.string(),
+  userId: z.string(),
+  userName: z.string(),
+  userPhone: z.string().optional(),
+  reason: ConvoySosReasonSchema,
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  details: z.string().optional(),
+  isResolved: z.boolean().default(false),
+  issuedAt: z.string(),
+  resolvedAt: z.string().optional(),
+  resolvedBy: z.string().optional(),
+});
+export type ConvoySosAlert = z.infer<typeof ConvoySosAlertSchema>;
 
 // ==========================================
 // 2. Exact Centavo Currency & Calculation Helpers
@@ -134,7 +177,46 @@ export function isValidPhilippinePhone(phone: string): boolean {
 }
 
 // ==========================================
-// 4. Base Health & Common API Schemas
+// 4. Geographic & Convoy Proximity Helpers
+// ==========================================
+
+/**
+ * Calculates the great-circle distance between two geographic coordinates using the Haversine formula.
+ * @returns Distance in kilometers.
+ */
+export function calculateHaversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Calculates great-circle distance in meters.
+ */
+export function calculateHaversineDistanceMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  return calculateHaversineDistanceKm(lat1, lon1, lat2, lon2) * 1000;
+}
+
+// ==========================================
+// 5. Base Health & Common API Schemas
 // ==========================================
 
 export const HealthStatusSchema = z.object({
