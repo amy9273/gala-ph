@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 13 Complete (Mobile Camera Receipt Scanner & Touch-to-Tag Splitter)
+## Current Status: Unit 14 Complete (Mobile Convoy HUD, Radar & Roadside SOS Engine)
 
 ---
 
@@ -22,8 +22,8 @@
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | ✅ Complete |
 | **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | ✅ Complete |
 | **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | ✅ Complete |
-| **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | ⏳ Next     |
-| **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest test suites, quality gate verification                     | 📅 Planned  |
+| **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | ✅ Complete |
+| **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest test suites, quality gate verification                     | ⏳ Next     |
 | **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | 📅 Planned  |
 
 ---
@@ -136,3 +136,16 @@
   - Integrated `scanner` tab into `BottomTabBar.tsx` and main navigation container in `apps/mobile/src/App.tsx`.
   - Created automated test suite (`apps/mobile/src/__tests__/receipt-ocr-scanner.test.ts`) validating OCR line-item extraction, alcohol tagging, non-drinker exemption, proportional SC/tax distribution, and SQLite outbox mutation enqueueing.
   - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 84/84 passing tests (`npm test`).
+- Implemented **Unit 14 (Mobile Convoy HUD, Radar & Roadside SOS Engine)**:
+  - Created Unit 14 specification in `context/specs/14-mobile-convoy-hud-and-sos.md`.
+  - Built `ConvoyService` (`apps/mobile/src/services/convoy.service.ts`) managing high-frequency GPS telemetry, Haversine distance computations, 16-point cardinal compass conversions, and automatic straggler detection ($> 5.0\text{km}$ separation threshold).
+  - Built `<ConvoySpeedometer />` (`apps/mobile/src/components/convoy/ConvoySpeedometer.tsx`) featuring high-glare in-car ergonomics, $76\text{dp}$ velocity typography, speed limit pills, compass heading readouts, and pairwise distance to lead & trailing cars.
+  - Built `<ConvoyRadarView />` (`apps/mobile/src/components/convoy/ConvoyRadarView.tsx`) with spatial northbound corridor track, inter-vehicle distance links, and straggler warning badges.
+  - Built `<VehicleRosterCard />` (`apps/mobile/src/components/convoy/VehicleRosterCard.tsx`) displaying driver contacts, vehicle models, live speed, battery levels, and 1-tap driver call triggers.
+  - Built `<QuickDriverStatusDock />` (`apps/mobile/src/components/convoy/QuickDriverStatusDock.tsx`) for one-handed thumb interaction with quick driver status toggles (Cruising, Gas Stop, Restroom, Stopping) and emergency SOS trigger.
+  - Built `<RoadsideSosModal />` (`apps/mobile/src/components/convoy/RoadsideSosModal.tsx`) with 7 Philippine roadside emergency categories (Flat tire, overheat, accident, checkpoint, medical, lost route, general breakdown), 3-second safety countdown, location coordinate readouts, and offline SQLite outbox persistence.
+  - Built `<ActiveSosEmergencyBanner />` (`apps/mobile/src/components/convoy/ActiveSosEmergencyBanner.tsx`) rendering persistent high-priority emergency alerts with victim info and direct phone dial actions.
+  - Built `ConvoyHudScreen` (`apps/mobile/src/screens/ConvoyHudScreen.tsx`) integrating HUD Mode, Radar Mode, live simulated drive engine, and straggler advisory alerts.
+  - Added `convoy` tab to `BottomTabBar.tsx` (🚗 Convoy) and wired into main navigation in `apps/mobile/src/App.tsx`.
+  - Created automated test suite (`apps/mobile/src/__tests__/convoy-hud-sos.test.ts`) validating compass math, speed categories, straggler detection, driver status outbox sync, and SOS alert dispatch/resolution lifecycle.
+  - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 91/91 passing tests (`npm test`).

@@ -19,11 +19,16 @@ export type BadgeVariant =
   | "settled"
   | "offline"
   | "ocean"
+  | "warning"
+  | "danger"
+  | "success"
+  | "info"
   | "neutral";
 
 interface BadgeProps {
   label: string;
   variant?: BadgeVariant;
+  size?: "small" | "medium";
   style?: ViewStyle;
   textStyle?: TextStyle;
 }
@@ -31,6 +36,7 @@ interface BadgeProps {
 export const Badge: React.FC<BadgeProps> = ({
   label,
   variant = "neutral",
+  size = "medium",
   style,
   textStyle,
 }) => {
@@ -84,6 +90,30 @@ export const Badge: React.FC<BadgeProps> = ({
           borderColor: "rgba(2, 132, 199, 0.4)",
           textColor: AppColors.brandOceanLight,
         };
+      case "warning":
+        return {
+          backgroundColor: "rgba(245, 158, 11, 0.15)",
+          borderColor: "rgba(245, 158, 11, 0.4)",
+          textColor: AppColors.warning,
+        };
+      case "danger":
+        return {
+          backgroundColor: "rgba(239, 68, 68, 0.15)",
+          borderColor: "rgba(239, 68, 68, 0.4)",
+          textColor: AppColors.danger,
+        };
+      case "success":
+        return {
+          backgroundColor: "rgba(16, 185, 129, 0.15)",
+          borderColor: "rgba(16, 185, 129, 0.4)",
+          textColor: AppColors.success,
+        };
+      case "info":
+        return {
+          backgroundColor: "rgba(59, 130, 246, 0.15)",
+          borderColor: "rgba(59, 130, 246, 0.4)",
+          textColor: AppColors.info,
+        };
       default:
         return {
           backgroundColor: AppColors.darkSurfaceSecondary,
@@ -99,6 +129,7 @@ export const Badge: React.FC<BadgeProps> = ({
     <View
       style={[
         styles.badge,
+        size === "small" && styles.badgeSmall,
         {
           backgroundColor: badgeConfig.backgroundColor,
           borderColor: badgeConfig.borderColor,
@@ -106,7 +137,14 @@ export const Badge: React.FC<BadgeProps> = ({
         style,
       ]}
     >
-      <Text style={[styles.text, { color: badgeConfig.textColor }, textStyle]}>
+      <Text
+        style={[
+          styles.text,
+          size === "small" && styles.textSmall,
+          { color: badgeConfig.textColor },
+          textStyle,
+        ]}
+      >
         {label}
       </Text>
     </View>
@@ -123,8 +161,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  badgeSmall: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
   text: {
     ...AppTypography.tiny,
     textTransform: "uppercase",
+  },
+  textSmall: {
+    fontSize: 9,
+    lineHeight: 12,
   },
 });
