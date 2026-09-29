@@ -118,7 +118,11 @@ export type OutboxMutationType =
   | "TOGGLE_PACKING_ITEM"
   | "ADD_PACKING_ITEM"
   | "UPDATE_ITINERARY_ITEM"
-  | "ADD_ITINERARY_ITEM";
+  | "ADD_ITINERARY_ITEM"
+  | "TRIGGER_SOS"
+  | "RESOLVE_SOS"
+  | "SEND_CONVOY_BEACON"
+  | "UPDATE_DRIVER_STATUS";
 
 export type OutboxStatus = "PENDING" | "SYNCING" | "SYNCED" | "FAILED";
 
@@ -135,7 +139,54 @@ export interface OutboxMutation<T = Record<string, unknown>> {
 }
 
 // ==========================================
-// 6. Network & Sync State
+// 6. Convoy Telemetry & HUD Models
+// ==========================================
+
+export type DriverQuickStatus =
+  "CRUISING" | "PULLING_OVER" | "RESTROOM" | "REFUEL" | "EMERGENCY_STOP";
+
+export interface ConvoyVehicleState {
+  userId: string;
+  userName: string;
+  vehicleId: string;
+  vehicleName: string;
+  driverPhone?: string;
+  latitude: number;
+  longitude: number;
+  speedKmh: number;
+  heading: number; // 0 - 360
+  batteryLevel?: number; // 0 - 100
+  updatedAt: string;
+  distanceFromMeKm: number;
+  relativePosition: "AHEAD" | "BEHIND" | "CURRENT";
+  isStraggler: boolean;
+  quickStatus: DriverQuickStatus;
+}
+
+export interface ConvoyTelemetrySummary {
+  tripId: string;
+  myVehicleId: string;
+  totalVehicles: number;
+  convoySpreadKm: number;
+  leadVehicle?: ConvoyVehicleState;
+  trailingVehicle?: ConvoyVehicleState;
+  stragglers: ConvoyVehicleState[];
+  activeSos?: {
+    id: string;
+    tripId: string;
+    userId: string;
+    userName: string;
+    userPhone?: string;
+    reason: string;
+    latitude: number;
+    longitude: number;
+    details?: string;
+    issuedAt: string;
+  };
+}
+
+// ==========================================
+// 7. Network & Sync State
 // ==========================================
 
 export interface NetworkConnectionState {
