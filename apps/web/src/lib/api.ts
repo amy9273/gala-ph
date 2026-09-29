@@ -1050,3 +1050,364 @@ export function solveDebtGraph(
 
   return { balances, settlements };
 }
+
+// ========================================================
+// TODA Tariffs & Commuter Transit Directory Models & Seeds
+// ========================================================
+
+export interface DialectPhrase {
+  phrase: string;
+  meaning: string;
+  phonetic: string;
+  context: string;
+}
+
+export interface TodaTariff {
+  id: string;
+  municipality: string;
+  province: string;
+  region: "NORTH_LUZON" | "SOUTH_LUZON" | "VISAYAS" | "MINDANAO";
+  originTerminal: string;
+  destination: string;
+  regularFarePerHead: number;
+  specialTripFare: number;
+  nightDiffFare?: number;
+  nightDiffStartTime?: string;
+  lastTripCurfew: string;
+  estimatedMins: number;
+  dialectCode: "ILO" | "BTG" | "CEB" | "TAG" | "WAR";
+  dialectName: string;
+  dialectPhrases: DialectPhrase[];
+  upvotes: number;
+  verifiedByLGU: boolean;
+  notes?: string;
+}
+
+export interface ProvincialBusRoute {
+  id: string;
+  operator: string;
+  originHub: string;
+  destination: string;
+  serviceType: "REGULAR" | "AIRCON" | "FIRST_CLASS" | "SLEEPER";
+  farePerHead: number;
+  durationHours: number;
+  firstTripTime: string;
+  lastTripTime: string;
+  terminalAddress: string;
+}
+
+export interface EnvironmentalFee {
+  id: string;
+  municipality: string;
+  feeName: string;
+  amountPerHead: number;
+  checkpointLocation: string;
+  exemptions?: string;
+}
+
+export const DEMO_TODA_TARIFFS: TodaTariff[] = [
+  {
+    id: "toda-elyu-01",
+    municipality: "San Juan",
+    province: "La Union",
+    region: "NORTH_LUZON",
+    originTerminal: "San Juan Municipal Town Plaza TODA",
+    destination: "Urbiztondo Beach Surf Strip (Flotsam / Kahuna)",
+    regularFarePerHead: 15.0,
+    specialTripFare: 50.0,
+    nightDiffFare: 70.0,
+    nightDiffStartTime: "08:30 PM",
+    lastTripCurfew: "10:30 PM",
+    estimatedMins: 10,
+    dialectCode: "ILO",
+    dialectName: "Ilocano",
+    dialectPhrases: [
+      {
+        phrase: "Mano ti plete aginggana Urbiztondo?",
+        meaning: "How much is the fare to Urbiztondo?",
+        phonetic: "MAH-noh tee PLEH-teh ah-geeng-GAH-nah oor-bees-TON-doh?",
+        context: "Ask driver before boarding to lock in the official fare.",
+      },
+      {
+        phrase: "Awanen ti tawar manong?",
+        meaning: "Can we get a discount, kuya?",
+        phonetic: "ah-wah-NEN tee TAH-wahr MAH-nong?",
+        context: "Bargaining phrase for chartered special trips.",
+      },
+      {
+        phrase: "Ditoy laengen, agyamanak!",
+        meaning: "Just here on the side, thank you!",
+        phonetic: "dee-TOY lah-eng-EN, ahg-yah-mah-NAHK!",
+        context: "Polite phrase to ask driver to pull over.",
+      },
+    ],
+    upvotes: 142,
+    verifiedByLGU: true,
+    notes: "Official municipal fare matrix posted at San Juan Municipal Hall.",
+  },
+  {
+    id: "toda-elyu-02",
+    municipality: "San Gabriel",
+    province: "La Union",
+    region: "NORTH_LUZON",
+    originTerminal: "San Gabriel Municipal Hall Jump-Off",
+    destination: "Tangadan Falls Trailhead Point",
+    regularFarePerHead: 30.0,
+    specialTripFare: 120.0,
+    nightDiffFare: 150.0,
+    nightDiffStartTime: "06:00 PM",
+    lastTripCurfew: "07:00 PM",
+    estimatedMins: 25,
+    dialectCode: "ILO",
+    dialectName: "Ilocano",
+    dialectPhrases: [
+      {
+        phrase: "Napan kami Tangadan Falls, padasem!",
+        meaning: "We are going to Tangadan Falls, let's go!",
+        phonetic: "nah-PAHN kah-MEE tahng-AH-dahn FALLS, pah-dah-SEM!",
+        context: "Informing driver of waterfall destination.",
+      },
+      {
+        phrase: "Urnayen mi ti guide fee manong.",
+        meaning: "We will pool the tour guide fee, kuya.",
+        phonetic: "oor-nah-YEN mee tee GUIDE FEE MAH-nong.",
+        context: "Clarifying if guide fee is separate from tricycle fare.",
+      },
+    ],
+    upvotes: 98,
+    verifiedByLGU: true,
+    notes:
+      "Mountainous rough road ascent. ₱50 environmental fee paid at municipal desk.",
+  },
+  {
+    id: "toda-btg-01",
+    municipality: "Nasugbu",
+    province: "Batangas",
+    region: "SOUTH_LUZON",
+    originTerminal: "Nasugbu Bayan Terminal",
+    destination: "Wawa Port (Fortune Island Boat Terminal)",
+    regularFarePerHead: 20.0,
+    specialTripFare: 80.0,
+    nightDiffFare: 100.0,
+    nightDiffStartTime: "08:00 PM",
+    lastTripCurfew: "09:00 PM",
+    estimatedMins: 15,
+    dialectCode: "BTG",
+    dialectName: "Batangueño Tagalog",
+    dialectPhrases: [
+      {
+        phrase: "Gaano baga ang pamasahi pa-Wawa?",
+        meaning: "How much is the fare to Wawa Port?",
+        phonetic: "GAH-ah-noh BAH-gah ahng pah-mah-SAH-hee pah-WAH-wah?",
+        context: "Classic Batangueño phrasing to signal local familiarity.",
+      },
+      {
+        phrase: "Ala eh, pakitabi na laang sa may bangka!",
+        meaning: "Please pull over by the boat docking area!",
+        phonetic: "AH-lah EH, pah-kee-TAH-bee nah LAH-ahng sah may BANG-kah!",
+        context: "Direction when reaching Fortune Island boat registration.",
+      },
+    ],
+    upvotes: 87,
+    verifiedByLGU: true,
+    notes: "Standard fare for Fortune Island weekend campers.",
+  },
+  {
+    id: "toda-aur-01",
+    municipality: "Baler",
+    province: "Aurora",
+    region: "NORTH_LUZON",
+    originTerminal: "Baler Central Bus Terminal",
+    destination: "Sabang Beach Boardwalk & Surf Hotels",
+    regularFarePerHead: 15.0,
+    specialTripFare: 40.0,
+    nightDiffFare: 60.0,
+    nightDiffStartTime: "09:00 PM",
+    lastTripCurfew: "11:00 PM",
+    estimatedMins: 8,
+    dialectCode: "TAG",
+    dialectName: "Tagalog / Casiguranin",
+    dialectPhrases: [
+      {
+        phrase: "Magkano po special pa-Sabang boardwalk?",
+        meaning: "How much for a chartered trip to Sabang boardwalk?",
+        phonetic: "mahg-KAH-noh poh SPEH-shahl pah-SAH-bahng BOARD-walk?",
+        context: "Standard inquiry when carrying heavy surfboards.",
+      },
+    ],
+    upvotes: 112,
+    verifiedByLGU: true,
+    notes: "Tricycles can load up to 2 longboards on specialized roof racks.",
+  },
+  {
+    id: "toda-ceb-01",
+    municipality: "Moalboal",
+    province: "Cebu",
+    region: "VISAYAS",
+    originTerminal: "Moalboal Town Center / Gaisano Grand",
+    destination: "Panagsama Beach (Sardine Run & Turtle Point)",
+    regularFarePerHead: 25.0,
+    specialTripFare: 100.0,
+    nightDiffFare: 150.0,
+    nightDiffStartTime: "08:00 PM",
+    lastTripCurfew: "10:00 PM",
+    estimatedMins: 15,
+    dialectCode: "CEB",
+    dialectName: "Cebuano / Bisaya",
+    dialectPhrases: [
+      {
+        phrase: "Pila plete padung Panagsama kuya?",
+        meaning: "How much is the fare going to Panagsama?",
+        phonetic: "PEE-lah PLEH-teh pah-DOONG pah-nahg-SAH-mah KOO-yah?",
+        context:
+          "Essential Cebuano phrase to avoid international tourist pricing.",
+      },
+      {
+        phrase: "Palihug pakanaog diri sa may diving shop.",
+        meaning: "Please drop us off here near the diving shop.",
+        phonetic: "pah-LEE-hoog pah-kah-NAH-ohg DEE-ree sah may DIVING SHOP.",
+        context: "Instructing driver at Panagsama drop-off.",
+      },
+      {
+        phrase: "Salamat kaayo, amping sa biyahe!",
+        meaning: "Thank you very much, take care on the road!",
+        phonetic: "sah-LAH-maht KAH-ah-yoh, ahm-PEENG sah bee-YAH-heh!",
+        context: "Courteous closing after paying fare.",
+      },
+    ],
+    upvotes: 165,
+    verifiedByLGU: true,
+    notes: "Tricycles accommodate 3 passengers with snorkel bags.",
+  },
+  {
+    id: "toda-boh-01",
+    municipality: "Panglao",
+    province: "Bohol",
+    region: "VISAYAS",
+    originTerminal: "Panglao International Airport / Tagbilaran Port",
+    destination: "Alona Beach Tourism Strip",
+    regularFarePerHead: 50.0,
+    specialTripFare: 200.0,
+    nightDiffFare: 250.0,
+    nightDiffStartTime: "08:30 PM",
+    lastTripCurfew: "10:00 PM",
+    estimatedMins: 20,
+    dialectCode: "CEB",
+    dialectName: "Boholano / Cebuano",
+    dialectPhrases: [
+      {
+        phrase: "Pila ang plete pa-Alona Beach?",
+        meaning: "How much is the fare to Alona Beach?",
+        phonetic: "PEE-lah ahng PLEH-teh pah-ah-LOH-nah BEACH?",
+        context: "Bargaining rate at Tagbilaran/Panglao arrivals.",
+      },
+      {
+        phrase: "Mahangyo pa ni kuya para sa barkada?",
+        meaning: "Can we negotiate a lower rate for our group, kuya?",
+        phonetic: "mah-HAHNG-yoh PAH nee KOO-yah PAH-rah sah bar-KAH-dah?",
+        context: "Group discount request.",
+      },
+    ],
+    upvotes: 129,
+    verifiedByLGU: true,
+    notes: "Official Panglao Tourism Tricycle cooperative rate.",
+  },
+];
+
+export const DEMO_BUS_ROUTES: ProvincialBusRoute[] = [
+  {
+    id: "bus-01",
+    operator: "Partas Transportation",
+    originHub: "Cubao / Pasay Terminal",
+    destination: "San Fernando / San Juan, La Union",
+    serviceType: "AIRCON",
+    farePerHead: 650.0,
+    durationHours: 5.5,
+    firstTripTime: "03:00 AM",
+    lastTripTime: "11:30 PM",
+    terminalAddress: "816 Aurora Blvd, Cubao, Quezon City",
+  },
+  {
+    id: "bus-02",
+    operator: "Genesis JoyBus (Executive)",
+    originHub: "Cubao Genesis Terminal",
+    destination: "Baguio City Terminal (Gov. Pack Rd)",
+    serviceType: "FIRST_CLASS",
+    farePerHead: 800.0,
+    durationHours: 4.0,
+    firstTripTime: "01:00 AM",
+    lastTripTime: "11:59 PM",
+    terminalAddress: "EDSA corner New York St, Cubao, QC",
+  },
+  {
+    id: "bus-03",
+    operator: "JAM Liner",
+    originHub: "Buendia / PITX Terminal",
+    destination: "Batangas Port Interchange",
+    serviceType: "AIRCON",
+    farePerHead: 245.0,
+    durationHours: 2.5,
+    firstTripTime: "04:00 AM",
+    lastTripTime: "10:00 PM",
+    terminalAddress: "Buendia Ave corner Taft Ave, Pasay",
+  },
+  {
+    id: "bus-04",
+    operator: "Genesis Transport (Baler Express)",
+    originHub: "Cubao Genesis Terminal",
+    destination: "Baler Central Bus Terminal",
+    serviceType: "AIRCON",
+    farePerHead: 750.0,
+    durationHours: 6.0,
+    firstTripTime: "03:30 AM",
+    lastTripTime: "08:00 PM",
+    terminalAddress: "EDSA corner New York St, Cubao, QC",
+  },
+  {
+    id: "bus-05",
+    operator: "Ceres Liner (South Cebu)",
+    originHub: "Cebu South Bus Terminal (CSBT)",
+    destination: "Moalboal Town Bus Stop",
+    serviceType: "AIRCON",
+    farePerHead: 210.0,
+    durationHours: 3.0,
+    firstTripTime: "04:00 AM",
+    lastTripTime: "09:00 PM",
+    terminalAddress: "N. Bacalso Ave, Cebu City",
+  },
+];
+
+export const DEMO_ENVIRONMENTAL_FEES: EnvironmentalFee[] = [
+  {
+    id: "fee-elyu-01",
+    municipality: "San Gabriel, La Union",
+    feeName: "Tangadan Falls Environmental & Safety Fee",
+    amountPerHead: 50.0,
+    checkpointLocation: "Municipal Eco-Tourism Registration Hall",
+    exemptions: "La Union residents & PWD/Senior Citizen discount applicable",
+  },
+  {
+    id: "fee-btg-01",
+    municipality: "Nasugbu, Batangas",
+    feeName: "Fortune Island Eco-Tourism & Island Conservation Fee",
+    amountPerHead: 400.0,
+    checkpointLocation: "Wawa Port Coast Guard Desk",
+    exemptions: "Day trip vs Overnight rates apply",
+  },
+  {
+    id: "fee-ceb-01",
+    municipality: "Moalboal, Cebu",
+    feeName: "Moalboal Marine Protected Area (MPA) Snorkeling Fee",
+    amountPerHead: 100.0,
+    checkpointLocation: "Panagsama Tourism Desk",
+    exemptions: "Valid for 3 days across all dive/snorkel spots",
+  },
+  {
+    id: "fee-boh-01",
+    municipality: "Panglao, Bohol",
+    feeName: "Panglao Island Environmental User Fee (EUF)",
+    amountPerHead: 100.0,
+    checkpointLocation: "Tagbilaran Port & Panglao Airport Arrival Booths",
+    exemptions: "Boholano residents with valid ID",
+  },
+];
