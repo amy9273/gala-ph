@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 08 Complete (Next.js App Shell & Theme)
+## Current Status: Unit 09 Complete (Interactive Trip Planner Map)
 
 ---
 
@@ -17,8 +17,8 @@
 | **Unit 06: Itemized KKB Split Engine**        | Line-item consumption ledger, non-drinker exclusion, debt graph solver                   | ✅ Complete |
 | **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | ✅ Complete |
 | **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | ✅ Complete |
-| **Unit 09: Interactive Trip Planner Map**     | Interactive Mapbox/Leaflet routing, dual-RFID card, PAGASA weather alert banner          | ⏳ Next     |
-| **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | 📅 Planned  |
+| **Unit 09: Interactive Trip Planner Map**     | Interactive routing, dual-RFID card, PAGASA weather alert banner, trip planner           | ✅ Complete |
+| **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | ⏳ Next     |
 | **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | 📅 Planned  |
 | **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | 📅 Planned  |
 | **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | 📅 Planned  |
@@ -93,3 +93,12 @@
   - Built foundational UI component primitives in `apps/web/src/components/ui/` (`<Button>`, `<Badge>`, `<Card>`, `<Skeleton>` for 4-state UI loading compliance).
   - Designed rich interactive Bento Grid travel OS hero dashboard (`apps/web/src/app/page.tsx`) showcasing Dual-RFID Toll Calculator preview, Live Convoy Radar, Itemized KKB Ledger with non-drinker protection, and Commuter Transit & TODA Directory.
   - Configured Google font optimization (`next/font/google` with Plus Jakarta Sans & Inter) and verified clean Next.js static production build.
+- Implemented **Unit 09 (Interactive Trip Planner Map & Dual-RFID Breakdown)**:
+  - Created Unit 09 specification in `context/specs/09-interactive-trip-planner-map.md`.
+  - Built Philippine Road Trip API & client library (`apps/web/src/lib/api.ts`) with preset corridors (La Union, Baguio, Batangas Port, Tagaytay, Subic), engine fuel economy presets (Sedan, Diesel SUV, Commuter Van, Motorcycle), and local toll breakdown math with ₱50 reload buffer rounding.
+  - Built standalone Dual-RFID Expressway Toll Calculator page (`/toll-calculator` and `apps/web/src/components/toll/toll-breakdown-card.tsx`) with Autosweep vs. Easytrip matrix isolation, vehicle class toggle (Class 1-3), plaza segment lists, and fuel estimation.
+  - Built interactive route visualizer (`<RouteMap />` in `apps/web/src/components/map/route-map.tsx`) with waypoint milestones, toll provider tags, live beacon animation, and plaza detail cards.
+  - Built DOST-PAGASA real-time Tropical Cyclone & Gale Advisory banner (`<WeatherAlertBanner />` in `apps/web/src/components/weather/weather-alert-banner.tsx`) with severity-coded alerts (`LOW`, `MODERATE`, `CRITICAL`), typhoon wind signals, and mountainous highway landslide alerts.
+  - Built Barkada Trips directory (`/trips` and `apps/web/src/components/trips/trip-card.tsx`) with invite code quick-join bar, 4-state UI skeletons, and `<CreateTripModal />`.
+  - Built full Trip Planner detail page (`/trips/[id]`) integrating Route Map, Dual-RFID breakdown, Itinerary Timeline accordion (`<ItineraryTimeline />`), PAGASA alert banner, barkada roster, and quick navigation actions to KKB Ledger, Live Convoy, and Transit Guide.
+  - Formatted and verified all workspaces (100% Prettier compliance, 0 ESLint warnings/errors, TypeScript strict pass across monorepo, Next.js static build pass, 76/76 passing automated tests).
