@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 09 Complete (Interactive Trip Planner Map)
+## Current Status: Unit 10 Complete (Itemized Bill Splitter UI & Debt Settlement Hub)
 
 ---
 
@@ -18,8 +18,8 @@
 | **Unit 07: Realtime Convoy & Packing Sync**   | WebSockets for live GPS convoy telemetry & Bayanihan packing checklist                   | ✅ Complete |
 | **Unit 08: Next.js App Shell & Theme**        | Next.js 15 App Router, Philippine nature/sunset design tokens                            | ✅ Complete |
 | **Unit 09: Interactive Trip Planner Map**     | Interactive routing, dual-RFID card, PAGASA weather alert banner, trip planner           | ✅ Complete |
-| **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | ⏳ Next     |
-| **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | 📅 Planned  |
+| **Unit 10: Itemized Bill Splitter UI**        | Bill splitter UI, avatar tagging, non-drinker toggles, GCash/Maya QR                     | ✅ Complete |
+| **Unit 11: Crowdsourced TODA Wiki UI**        | Community TODA tariff directory and provincial travel tips                               | ⏳ Next     |
 | **Unit 12: Mobile Scaffold & Offline SQLite** | React Native (Expo) scaffold, offline SQLite (`expo-sqlite`), itinerary & expense queue  | 📅 Planned  |
 | **Unit 13: Mobile Camera Receipt Scanner**    | Camera OCR line-item extraction and touch-to-tag eater assigning                         | 📅 Planned  |
 | **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | 📅 Planned  |
@@ -102,3 +102,13 @@
   - Built Barkada Trips directory (`/trips` and `apps/web/src/components/trips/trip-card.tsx`) with invite code quick-join bar, 4-state UI skeletons, and `<CreateTripModal />`.
   - Built full Trip Planner detail page (`/trips/[id]`) integrating Route Map, Dual-RFID breakdown, Itinerary Timeline accordion (`<ItineraryTimeline />`), PAGASA alert banner, barkada roster, and quick navigation actions to KKB Ledger, Live Convoy, and Transit Guide.
   - Formatted and verified all workspaces (100% Prettier compliance, 0 ESLint warnings/errors, TypeScript strict pass across monorepo, Next.js static build pass, 76/76 passing automated tests).
+- Implemented **Unit 10 (Itemized Bill Splitter UI & Debt Settlement Hub)**:
+  - Created Unit 10 specification in `context/specs/10-itemized-bill-splitter-and-ledger-ui.md`.
+  - Expanded web client API models (`apps/web/src/lib/api.ts`) with `Expense`, `ExpenseItem`, `ExpenseSplit`, `MemberBalance`, `DebtSettlement`, integer centavo math, proportional SC/tax calculations (`calculateItemizedSplits`), and greedy debt graph solver (`solveDebtGraph`).
+  - Built `<ExpenseSplitCard />` in `apps/web/src/components/ledger/expense-split-card.tsx` with expandable itemized receipt lines, tagged consumer avatars, category badges, and per-person split chips.
+  - Built `<CreateExpenseModal />` in `apps/web/src/components/ledger/create-expense-modal.tsx` supporting multi-dish receipts, interactive eater avatar selection, 1-click presets ("Drinkers Only" excluding non-drinkers, "Passengers Only" exempting drivers), service charge (SC %) and tax (%) sliders, and live per-person calculation previews.
+  - Built `<DebtSettlementCard />` in `apps/web/src/components/ledger/debt-settlement-card.tsx` rendering participant net balances (Creditors in Nature Emerald, Debtors in Coral) and collapsed bilateral debt transfers ($O(N^2) \to \le N-1$).
+  - Built `<QRPaymentModal />` in `apps/web/src/components/ledger/qr-payment-modal.tsx` with Philippine QR Ph vector generator, GCash and Maya number copy toggles, and payment reference code formatting.
+  - Built `<TripLedgerView />` in `apps/web/src/components/ledger/trip-ledger-view.tsx` with spend metrics bento, category filters, expense feed, and debt settlement hub.
+  - Built standalone KKB Master Ledger page (`/ledger` in `apps/web/src/app/ledger/page.tsx`) and integrated direct KKB Ledger tab inside the trip planner detail page (`/trips/[id]`).
+  - Verified full quality checks: 100% Prettier formatting (`npm run format:check`), 0 type errors across monorepo workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), Next.js static build pass (`npm run build:web`), and 76/76 passing automated tests.
