@@ -7,31 +7,26 @@ declare global {
   var prismaGlobal: PrismaClient | undefined;
 }
 
-export function getPrismaClient(): PrismaClient {
-  if (globalThis.prismaGlobal) {
-    return globalThis.prismaGlobal;
-  }
-
-  const client = new PrismaClient({
+function createPrismaClient(): PrismaClient {
+  return new PrismaClient({
     log:
       env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error", "warn"],
   });
-
-  if (env.NODE_ENV !== "production") {
-    globalThis.prismaGlobal = client;
-  }
-
-  return client;
 }
 
-export const prisma = getPrismaClient();
+export const prisma = globalThis.prismaGlobal ?? createPrismaClient();
+
+if (env.NODE_ENV !== "production") {
+  globalThis.prismaGlobal = prisma;
+}
 
 export async function disconnectPrisma(): Promise<void> {
-  if (globalThis.prismaGlobal) {
-    await globalThis.prismaGlobal.$disconnect();
-    globalThis.prismaGlobal = undefined;
+  try {
+    await prisma.$disconnect();
     logger.info("Prisma client disconnected.");
+  } catch (err) {
+    logger.debug({ err }, "Error disconnecting Prisma");
   }
 }

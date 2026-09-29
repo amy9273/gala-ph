@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* #F8FAFC */
+    --foreground: 222 47% 11%; /* #0F172A */
+
+    --surface: 0 0% 100%; /* #FFFFFF */
+    --surface-secondary: 210 40% 96%; /* #F1F5F9 */
+    --surface-tertiary: 214 32% 91%; /* #E2E8F0 */
+
+    --border: 214 32% 91%; /* #E2E8F0 */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* #64748B */
+
+    --brand-ocean: 199 89% 48%; /* #0284C7 */
+    --brand-ocean-glow: rgba(2, 132, 199, 0.25);
+
+    --accent-sunset: 24 95% 53%; /* #EA580C */
+    --accent-sunset-glow: rgba(234, 88, 12, 0.25);
+
+    --nature-emerald: 160 84% 39%; /* #059669 */
+    --nature-emerald-glow: rgba(5, 150, 105, 0.25);
+
+    --travel-autosweep: 38 92% 50%; /* #D97706 */
+    --travel-easytrip: 199 89% 48%; /* #0284C7 */
+    --travel-commute: 160 84% 39%; /* #059669 */
+    --travel-unsettled: 350 89% 60%; /* #F43F5E */
+    --travel-settled: 160 84% 39%; /* #10B981 */
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 47% 6%; /* #090D16 - Midnight Surf */
+    --foreground: 210 40% 98%; /* #F8FAFC */
+
+    --surface: 222 47% 11%; /* #111827 */
+    --surface-secondary: 217 33% 17%; /* #1E293B */
+    --surface-tertiary: 215 25% 27%; /* #334155 */
+
+    --border: 215 25% 27%; /* #334155 */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%; /* #94A3B8 */
+
+    --brand-ocean: 199 95% 60%; /* #38BDF8 */
+    --brand-ocean-glow: rgba(56, 189, 248, 0.3);
+
+    --accent-sunset: 27 96% 61%; /* #FB923C */
+    --accent-sunset-glow: rgba(251, 146, 60, 0.3);
+
+    --nature-emerald: 156 72% 52%; /* #34D399 */
+    --nature-emerald-glow: rgba(52, 211, 153, 0.3);
+
+    --travel-autosweep: 38 92% 50%;
+    --travel-easytrip: 199 95% 60%;
+    --travel-commute: 156 72% 52%;
+    --travel-unsettled: 350 89% 60%;
+    --travel-settled: 156 72% 52%;
+  }
+}
+
+@layer components {
+  .glass-nav {
+    @apply sticky top-0 z-50 backdrop-blur-xl border-b border-border/60 bg-background/80 transition-colors;
+  }
+
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl border border-border/70 bg-surface/80 p-6 shadow-sm backdrop-blur-lg transition-all duration-200 hover:border-border hover:shadow-md dark:bg-surface/50;
+  }
+
+  .bento-card {
+    @apply relative overflow-hidden rounded-2xl border border-border/80 bg-surface p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-brand-ocean/40 dark:bg-surface/60;
+  }
+}
+
+/* Custom High-Contrast Text Shadows for Glare Proofing */
+.text-glare-proof {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}

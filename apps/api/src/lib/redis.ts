@@ -9,7 +9,7 @@ export function getRedisClient(): Redis | null {
     return null;
   }
 
-  if (!redisInstance) {
+  if (!redisInstance || redisInstance.status === "end") {
     redisInstance = new Redis(env.REDIS_URL, {
       keyPrefix: env.REDIS_KEY_PREFIX,
       maxRetriesPerRequest: 3,
