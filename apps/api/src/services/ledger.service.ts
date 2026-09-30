@@ -4,6 +4,7 @@ import {
   centavosToPesos,
   formatPHP,
   splitAmountEqually,
+  solveGreedyDebtGraph,
 } from "@gala-ph/shared";
 import {
   BadRequestError,
@@ -694,103 +695,45 @@ export class LedgerService {
   async simplifyDebts(tripId: string, currentUserId: string) {
     const balances = await this.getTripBalances(tripId, currentUserId);
 
-    // Separate into Debtors and Creditors
-    const debtors: Array<{
-      userId: string;
-      name: string;
-      avatarUrl: string | null;
-      remainingDebtCentavos: number;
-    }> = [];
-
-    const creditors: Array<{
-      userId: string;
-      name: string;
-      avatarUrl: string | null;
-      gcashNumber: string | null;
-      mayaNumber: string | null;
-      remainingCreditCentavos: number;
-    }> = [];
-
-    for (const b of balances) {
-      if (b.netBalanceCentavos < 0) {
-        debtors.push({
-          userId: b.userId,
-          name: b.name,
-          avatarUrl: b.avatarUrl,
-          remainingDebtCentavos: -b.netBalanceCentavos, // Positive amount owed
-        });
-      } else if (b.netBalanceCentavos > 0) {
-        creditors.push({
-          userId: b.userId,
-          name: b.name,
-          avatarUrl: b.avatarUrl,
-          gcashNumber: b.gcashNumber,
-          mayaNumber: b.mayaNumber,
-          remainingCreditCentavos: b.netBalanceCentavos,
-        });
-      }
-    }
-
-    // Sort to optimize greedy bilateral cancellation
-    debtors.sort((a, b) => b.remainingDebtCentavos - a.remainingDebtCentavos);
-    creditors.sort(
-      (a, b) => b.remainingCreditCentavos - a.remainingCreditCentavos,
+    const transfers = solveGreedyDebtGraph(
+      balances.map((b) => ({
+        userId: b.userId,
+        name: b.name,
+        avatarUrl: b.avatarUrl,
+        gcashNumber: b.gcashNumber,
+        mayaNumber: b.mayaNumber,
+        netBalanceCentavos: b.netBalanceCentavos,
+      })),
     );
 
-    const simplifiedTransactions: SimplifiedDebtTransaction[] = [];
-
-    let dIndex = 0;
-    let cIndex = 0;
-
-    while (dIndex < debtors.length && cIndex < creditors.length) {
-      const debtor = debtors[dIndex]!;
-      const creditor = creditors[cIndex]!;
-
-      const transferCentavos = Math.min(
-        debtor.remainingDebtCentavos,
-        creditor.remainingCreditCentavos,
-      );
-
-      if (transferCentavos > 0) {
-        const suggestedMethod: "GCASH" | "MAYA" | "CASH" = creditor.gcashNumber
-          ? "GCASH"
-          : creditor.mayaNumber
-            ? "MAYA"
-            : "CASH";
-
-        const mobile = creditor.gcashNumber || creditor.mayaNumber || null;
-
-        simplifiedTransactions.push({
+    const simplifiedTransactions: SimplifiedDebtTransaction[] = transfers.map(
+      (t) => {
+        const mobile = t.toUserGcashNumber || t.toUserMayaNumber || null;
+        return {
           fromUser: {
-            id: debtor.userId,
-            name: debtor.name,
-            avatarUrl: debtor.avatarUrl,
+            id: t.fromUserId,
+            name: t.fromUserName,
+            avatarUrl: t.fromUserAvatarUrl || null,
           },
           toUser: {
-            id: creditor.userId,
-            name: creditor.name,
-            avatarUrl: creditor.avatarUrl,
-            gcashNumber: creditor.gcashNumber,
-            mayaNumber: creditor.mayaNumber,
+            id: t.toUserId,
+            name: t.toUserName,
+            avatarUrl: t.toUserAvatarUrl || null,
+            gcashNumber: t.toUserGcashNumber || null,
+            mayaNumber: t.toUserMayaNumber || null,
           },
-          amountCentavos: transferCentavos,
-          amountPesos: centavosToPesos(transferCentavos),
-          formattedAmount: formatPHP(transferCentavos, true),
-          suggestedPaymentMethod: suggestedMethod,
+          amountCentavos: t.amountCentavos,
+          amountPesos: t.amountPesos,
+          formattedAmount: formatPHP(t.amountCentavos, true),
+          suggestedPaymentMethod: t.suggestedPaymentMethod,
           qrPayload: {
-            recipientName: creditor.name,
+            recipientName: t.toUserName,
             recipientMobile: mobile,
-            amount: centavosToPesos(transferCentavos),
+            amount: t.amountPesos,
           },
-        });
-      }
-
-      debtor.remainingDebtCentavos -= transferCentavos;
-      creditor.remainingCreditCentavos -= transferCentavos;
-
-      if (debtor.remainingDebtCentavos === 0) dIndex++;
-      if (creditor.remainingCreditCentavos === 0) cIndex++;
-    }
+        };
+      },
+    );
 
     return {
       tripId,

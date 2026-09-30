@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 16 Complete (UI/UX Ergonomics & Polish) — Monorepo Feature-Complete
+## Current Status: Unit 17 Complete (Clean Architecture, Query Hygiene & Engineering Hardening)
 
 ---
 
@@ -25,10 +25,22 @@
 | **Unit 14: Mobile Convoy HUD & SOS**          | Driver one-handed HUD mode, live convoy map, 1-tap SOS beacon                            | ✅ Complete |
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest/node test suites, quality gate verification                | ✅ Complete |
 | **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | ✅ Complete |
+| **Unit 17: Clean Architecture & Hardening**   | Anti-N+1 batching, transactional atomicity, PII masking, shared debt solver, pagination  | ✅ Complete |
 
 ---
 
 ### Recent Changes
+
+- Implemented **Unit 17 (Clean Architecture, Query Hygiene & Engineering Hardening)**:
+  - Formulated and instituted universal software engineering best practices in `context/engineering-best-practices.md` (Code Readability, Clean Architecture, Defensive Error Handling, Query Hygiene, Security/PII, and Testing Standards).
+  - Configured Pino logger PII & secret redaction in `apps/api/src/lib/logger.ts` (`password`, `token`, `phone`, `gcashNumber`, `mayaNumber`).
+  - Standardized API error responses across `apps/api/src/middlewares/error.middleware.ts` with uniform `{ success: false, error: { code, message, correlationId, details } }` contract.
+  - Eliminated N+1 sequential database toll queries in `TollService.calculateRouteToll`, replacing them with batched plaza resolution (`batchResolvePlazaFees`) in a single query with bidirectional symmetry.
+  - Enforced atomic transaction boundary (`prisma.$transaction`) on `TransitService.attachTransitLegsToTrip` and bounded TODA tariff queries with `take` constraints.
+  - Added bounded memory pagination (`take`, `skip`, `page`, `limit`) to `TripService.getUserTrips` and wired into `TripController`.
+  - Extracted pure greedy debt graph solver into `@gala-ph/shared/src/ledger.ts` (`solveGreedyDebtGraph`) and refactored both `LedgerService` and Next.js web client (`apps/web/src/lib/api.ts`) to eliminate duplicated logic.
+  - Resolved Expo monorepo Metro resolution with `apps/mobile/metro.config.js` and removed invalid `expo-sqlite` config plugin from `app.json`.
+  - Created automated test suites in `packages/shared/src/__tests__/ledger-solver.test.ts` and `apps/api/src/__tests__/unit-17-hardening.test.ts` (122/122 tests passing monorepo-wide).
 
 - Scaffolded monorepo workspaces: `packages/shared`, `apps/api`, `apps/web`.
 - Generated unified root `package-lock.json` with 100% clean `npm install`.

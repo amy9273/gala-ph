@@ -175,59 +175,86 @@ export class TollService {
   };
 
   /**
-   * Resolves toll fee for an expressway plaza pair with symmetrical fallback.
+   * Batches resolution of toll fees for multiple expressway segments in a single query.
+   * Preserves bidirectional highway toll equivalence and eliminates N+1 query loops.
    */
-  private async resolvePlazaFee(
-    expressway: string,
-    entryPlaza: string,
-    exitPlaza: string,
+  private async batchResolvePlazaFees(
+    segments: TollSegmentDto[],
     classType: number,
-  ): Promise<EvaluatedTollLeg> {
-    // 1. Direct entry -> exit lookup
-    let rate = await prisma.expresswayTollRate.findFirst({
-      where: {
-        expressway: { equals: expressway, mode: "insensitive" },
-        entryPlaza: { equals: entryPlaza, mode: "insensitive" },
-        exitPlaza: { equals: exitPlaza, mode: "insensitive" },
+  ): Promise<EvaluatedTollLeg[]> {
+    if (segments.length === 0) return [];
+
+    const orConditions = segments.flatMap((segment) => [
+      {
+        expressway: {
+          equals: segment.expressway,
+          mode: "insensitive" as const,
+        },
+        entryPlaza: {
+          equals: segment.entryPlaza,
+          mode: "insensitive" as const,
+        },
+        exitPlaza: { equals: segment.exitPlaza, mode: "insensitive" as const },
       },
+      {
+        expressway: {
+          equals: segment.expressway,
+          mode: "insensitive" as const,
+        },
+        entryPlaza: { equals: segment.exitPlaza, mode: "insensitive" as const },
+        exitPlaza: { equals: segment.entryPlaza, mode: "insensitive" as const },
+      },
+    ]);
+
+    const matchingRates = await prisma.expresswayTollRate.findMany({
+      where: { OR: orConditions },
     });
 
-    // 2. Symmetrical exit -> entry fallback (bidirectional highway toll equivalence)
-    if (!rate) {
-      rate = await prisma.expresswayTollRate.findFirst({
-        where: {
-          expressway: { equals: expressway, mode: "insensitive" },
-          entryPlaza: { equals: exitPlaza, mode: "insensitive" },
-          exitPlaza: { equals: entryPlaza, mode: "insensitive" },
-        },
-      });
-    }
+    return segments.map((segment) => {
+      const exp = segment.expressway.toLowerCase();
+      const entry = segment.entryPlaza.toLowerCase();
+      const exit = segment.exitPlaza.toLowerCase();
 
-    if (!rate) {
-      throw new NotFoundError(
-        `Expressway toll rate not found for ${expressway} (${entryPlaza} to ${exitPlaza})`,
-      );
-    }
+      const rate =
+        matchingRates.find(
+          (r) =>
+            r.expressway.toLowerCase() === exp &&
+            r.entryPlaza.toLowerCase() === entry &&
+            r.exitPlaza.toLowerCase() === exit,
+        ) ||
+        matchingRates.find(
+          (r) =>
+            r.expressway.toLowerCase() === exp &&
+            r.entryPlaza.toLowerCase() === exit &&
+            r.exitPlaza.toLowerCase() === entry,
+        );
 
-    let feeDecimal = rate.class1Fee;
-    if (classType === 2) {
-      feeDecimal = rate.class2Fee;
-    } else if (classType === 3) {
-      feeDecimal = rate.class3Fee;
-    }
+      if (!rate) {
+        throw new NotFoundError(
+          `Expressway toll rate not found for ${segment.expressway} (${segment.entryPlaza} to ${segment.exitPlaza})`,
+        );
+      }
 
-    const feeAmount = Number(feeDecimal);
-    const amountCentavos = pesosToCentavos(feeAmount);
+      let feeDecimal = rate.class1Fee;
+      if (classType === 2) {
+        feeDecimal = rate.class2Fee;
+      } else if (classType === 3) {
+        feeDecimal = rate.class3Fee;
+      }
 
-    return {
-      expressway: rate.expressway,
-      rfidProvider: rate.rfidProvider as "AUTOSWEEP" | "EASYTRIP",
-      entryPlaza: rate.entryPlaza,
-      exitPlaza: rate.exitPlaza,
-      classType,
-      amount: feeAmount,
-      amountCentavos,
-    };
+      const feeAmount = Number(feeDecimal);
+      const amountCentavos = pesosToCentavos(feeAmount);
+
+      return {
+        expressway: rate.expressway,
+        rfidProvider: rate.rfidProvider as "AUTOSWEEP" | "EASYTRIP",
+        entryPlaza: segment.entryPlaza,
+        exitPlaza: segment.exitPlaza,
+        classType,
+        amount: feeAmount,
+        amountCentavos,
+      };
+    });
   }
 
   /**
@@ -250,23 +277,17 @@ export class TollService {
       throw new BadRequestError("No toll segments provided for calculation");
     }
 
-    const evaluatedLegs: EvaluatedTollLeg[] = [];
+    const evaluatedLegs = await this.batchResolvePlazaFees(
+      segmentsToProcess,
+      dto.classType,
+    );
     const autosweepLegs: EvaluatedTollLeg[] = [];
     const easytripLegs: EvaluatedTollLeg[] = [];
 
     let totalAutosweepCentavos = 0;
     let totalEasytripCentavos = 0;
 
-    for (const segment of segmentsToProcess) {
-      const leg = await this.resolvePlazaFee(
-        segment.expressway,
-        segment.entryPlaza,
-        segment.exitPlaza,
-        dto.classType,
-      );
-
-      evaluatedLegs.push(leg);
-
+    for (const leg of evaluatedLegs) {
       if (leg.rfidProvider === "AUTOSWEEP") {
         autosweepLegs.push(leg);
         totalAutosweepCentavos += leg.amountCentavos;

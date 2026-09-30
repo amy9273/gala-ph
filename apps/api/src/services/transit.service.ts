@@ -135,6 +135,7 @@ export class TransitService {
 
     const tariffs: TodaTariff[] = await prisma.todaTariff.findMany({
       where: whereClause,
+      take: 100,
       orderBy: [{ municipality: "asc" }, { routeFrom: "asc" }],
     });
 
@@ -215,7 +216,9 @@ export class TransitService {
     }
 
     // 2. Resolve Local TODA Tricycle Leg
-    const todaTariffs: TodaTariff[] = await prisma.todaTariff.findMany();
+    const todaTariffs: TodaTariff[] = await prisma.todaTariff.findMany({
+      take: 200,
+    });
     let matchedToda: TodaTariff | null = null;
 
     for (const toda of todaTariffs) {
@@ -342,29 +345,32 @@ export class TransitService {
       );
     }
 
-    // Clean prior transit legs if replacing
-    await prisma.transitLeg.deleteMany({
-      where: { tripId },
-    });
-
-    const createdLegs = [];
-    for (const leg of dto.legs) {
-      const created = await prisma.transitLeg.create({
-        data: {
-          tripId,
-          stepNumber: leg.stepNumber,
-          modeType: leg.modeType,
-          operatorName: leg.operatorName,
-          origin: leg.origin,
-          destination: leg.destination,
-          farePerHead: leg.farePerHead,
-          specialTripFare: leg.specialTripFare,
-          lastTripTime: leg.lastTripTime,
-          notes: leg.notes,
-        },
+    // Clean prior transit legs and create new ones atomically in a transaction
+    const createdLegs = await prisma.$transaction(async (tx) => {
+      await tx.transitLeg.deleteMany({
+        where: { tripId },
       });
-      createdLegs.push(created);
-    }
+
+      const results = [];
+      for (const leg of dto.legs) {
+        const created = await tx.transitLeg.create({
+          data: {
+            tripId,
+            stepNumber: leg.stepNumber,
+            modeType: leg.modeType,
+            operatorName: leg.operatorName,
+            origin: leg.origin,
+            destination: leg.destination,
+            farePerHead: leg.farePerHead,
+            specialTripFare: leg.specialTripFare,
+            lastTripTime: leg.lastTripTime,
+            notes: leg.notes,
+          },
+        });
+        results.push(created);
+      }
+      return results;
+    });
 
     return {
       message: "Transit legs attached successfully to trip",

@@ -5,6 +5,22 @@ export const asyncLocalStorage = new AsyncLocalStorage<Map<string, string>>();
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || "info",
+  redact: {
+    paths: [
+      "password",
+      "passwordHash",
+      "token",
+      "authorization",
+      "req.headers.authorization",
+      "*.password",
+      "*.passwordHash",
+      "*.token",
+      "phone",
+      "gcashNumber",
+      "mayaNumber",
+    ],
+    censor: "[REDACTED]",
+  },
   transport:
     process.env.NODE_ENV !== "production"
       ? {

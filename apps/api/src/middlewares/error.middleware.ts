@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
-import { logger } from "../lib/logger.js";
+import { logger, asyncLocalStorage } from "../lib/logger.js";
 import { AppError } from "../errors/AppError.js";
 
 export { AppError };
@@ -11,11 +11,19 @@ export function errorMiddleware(
   res: Response,
   _next: NextFunction,
 ): void {
+  const store = asyncLocalStorage.getStore();
+  const correlationId =
+    store?.get("correlationId") ||
+    (req.headers["x-correlation-id"] as string) ||
+    undefined;
+
   if (err instanceof ZodError) {
     res.status(400).json({
+      success: false,
       error: {
         code: "VALIDATION_ERROR",
         message: "Request validation failed",
+        correlationId,
         details: err.flatten(),
       },
     });
@@ -24,9 +32,11 @@ export function errorMiddleware(
 
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
+      success: false,
       error: {
         code: err.code,
         message: err.message,
+        correlationId,
         details: err.details,
       },
     });
@@ -39,9 +49,11 @@ export function errorMiddleware(
   );
 
   res.status(500).json({
+    success: false,
     error: {
       code: "INTERNAL_SERVER_ERROR",
       message: "An unexpected internal server error occurred",
+      correlationId,
     },
   });
 }
