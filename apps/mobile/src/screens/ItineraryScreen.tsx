@@ -18,6 +18,7 @@ import { CardSkeleton } from "../components/ui/SkeletonLoader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { CurrencyDisplay } from "../components/ui/CurrencyDisplay";
+import { Ionicons } from "@expo/vector-icons";
 import { itineraryRepository } from "../lib/sqlite/repositories/itinerary.repository";
 import { outboxSyncService } from "../services/outbox-sync.service";
 import type { LocalItineraryItem } from "../types";
@@ -189,7 +190,21 @@ export const ItineraryScreen: React.FC = () => {
               </View>
 
               <Text style={styles.activityTitle}>{item.activity}</Text>
-              <Text style={styles.locationText}>📍 {item.location}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <Ionicons
+                  name="location-outline"
+                  size={14}
+                  color={AppColors.brandPrimary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.locationText}>{item.location}</Text>
+              </View>
 
               <View style={styles.stopFooter}>
                 <Text style={styles.estCostLabel}>Est. Budget:</Text>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
 import { AppTypography } from "../theme/typography";
@@ -181,9 +182,23 @@ export const SyncQueueScreen: React.FC = () => {
                 />
               </View>
 
-              <Text style={styles.idempKey} numberOfLines={1}>
-                🔑 {mut.idempotencyKey}
-              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 4,
+                }}
+              >
+                <Ionicons
+                  name="key-outline"
+                  size={12}
+                  color={AppColors.textSecondary}
+                  style={{ marginRight: 4 }}
+                />
+                <Text style={styles.idempKey} numberOfLines={1}>
+                  {mut.idempotencyKey}
+                </Text>
+              </View>
 
               <Text style={styles.mutationDetails}>
                 Created: {new Date(mut.createdAt).toLocaleTimeString()} •
@@ -192,7 +207,13 @@ export const SyncQueueScreen: React.FC = () => {
 
               {mut.lastError ? (
                 <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>⚠️ {mut.lastError}</Text>
+                  <Ionicons
+                    name="warning-outline"
+                    size={13}
+                    color={AppColors.danger}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text style={styles.errorText}>{mut.lastError}</Text>
                 </View>
               ) : null}
             </Card>

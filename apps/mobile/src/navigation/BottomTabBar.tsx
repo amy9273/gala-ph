@@ -1,32 +1,44 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
 import { AppTypography } from "../theme/typography";
 
-export type TabKey =
-  | "overview"
-  | "convoy"
-  | "itinerary"
-  | "scanner"
-  | "packing"
-  | "expenses"
-  | "sync";
+export type TabKey = "overview" | "itinerary" | "convoy" | "expenses";
 
 interface TabItem {
   key: TabKey;
   label: string;
-  icon: string;
+  iconOutline: keyof typeof Ionicons.glyphMap;
+  iconFilled: keyof typeof Ionicons.glyphMap;
 }
 
 const TABS: TabItem[] = [
-  { key: "overview", label: "Trip", icon: "🏝️" },
-  { key: "convoy", label: "Convoy", icon: "🚗" },
-  { key: "itinerary", label: "Itinerary", icon: "🗺️" },
-  { key: "scanner", label: "Scan OCR", icon: "📸" },
-  { key: "packing", label: "Packing", icon: "🎒" },
-  { key: "expenses", label: "Ledger", icon: "🧾" },
-  { key: "sync", label: "Outbox", icon: "⚡" },
+  {
+    key: "overview",
+    label: "Trip",
+    iconOutline: "compass-outline",
+    iconFilled: "compass",
+  },
+  {
+    key: "itinerary",
+    label: "Itinerary",
+    iconOutline: "calendar-outline",
+    iconFilled: "calendar",
+  },
+  {
+    key: "convoy",
+    label: "Convoy",
+    iconOutline: "navigate-outline",
+    iconFilled: "navigate",
+  },
+  {
+    key: "expenses",
+    label: "Ledger",
+    iconOutline: "receipt-outline",
+    iconFilled: "receipt",
+  },
 ];
 
 interface BottomTabBarProps {
@@ -44,18 +56,23 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
     <View style={styles.container}>
       {TABS.map((tab) => {
         const isActive = activeTab === tab.key;
+        const iconName = isActive ? tab.iconFilled : tab.iconOutline;
+        const iconColor = isActive
+          ? AppColors.brandPrimary
+          : AppColors.textSecondary;
+
         return (
           <TouchableOpacity
             key={tab.key}
             activeOpacity={0.7}
             onPress={() => onSelectTab(tab.key)}
-            style={[styles.tabButton, isActive && styles.tabButtonActive]}
+            style={styles.tabButton}
           >
-            <View style={styles.iconContainer}>
-              <Text style={[styles.icon, isActive && styles.iconActive]}>
-                {tab.icon}
-              </Text>
-              {tab.key === "sync" && pendingCount > 0 ? (
+            <View
+              style={[styles.iconWrapper, isActive && styles.iconWrapperActive]}
+            >
+              <Ionicons name={iconName} size={22} color={iconColor} />
+              {tab.key === "expenses" && pendingCount > 0 ? (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{pendingCount}</Text>
                 </View>
@@ -77,9 +94,9 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.darkSurface,
     borderTopWidth: 1,
     borderTopColor: AppColors.darkBorder,
-    height: AppSpacing.bottomDockHeight,
-    paddingBottom: AppSpacing.sm,
-    paddingTop: AppSpacing.xs,
+    height: 68,
+    paddingBottom: 8,
+    paddingTop: 6,
     justifyContent: "space-around",
     alignItems: "center",
   },
@@ -89,33 +106,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: AppSpacing.touchTargetMin,
   },
-  tabButtonActive: {
-    transform: [{ scale: 1.05 }],
-  },
-  iconContainer: {
+  iconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 3,
+    borderRadius: 16,
     position: "relative",
   },
-  icon: {
-    fontSize: 20,
-    marginBottom: 2,
-    opacity: 0.6,
-  },
-  iconActive: {
-    opacity: 1,
+  iconWrapperActive: {
+    backgroundColor: AppColors.brandPrimaryBg,
   },
   label: {
     ...AppTypography.tiny,
-    color: AppColors.textMuted,
+    color: AppColors.textSecondary,
+    fontSize: 11,
+    fontWeight: "500",
+    marginTop: 2,
   },
   labelActive: {
-    color: AppColors.brandOceanLight,
+    color: AppColors.brandPrimary,
     fontWeight: "700",
   },
   badge: {
     position: "absolute",
-    top: -4,
-    right: -10,
-    backgroundColor: AppColors.accentSunset,
+    top: -2,
+    right: 6,
+    backgroundColor: AppColors.accentGold,
     borderRadius: 8,
     minWidth: 16,
     height: 16,

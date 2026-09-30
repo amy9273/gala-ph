@@ -40,26 +40,31 @@ Status colors and transit indicators are sacred across Web and Mobile:
 
 ## 2. Color Palette & Semantic Tokens
 
-Inspired by Philippine travel landscapes: **Deep Ocean (`#0077B6`)**, **Tropical Palm (`#10B981`)**, **Sunset Coral (`#F97316`)**, and **Volcanic Basalt (`#0F172A`)**.
+Inspired by Philippine road trip landscapes and culture: **Sunset Terracotta (`#FF5A36`)**, **Tropical Sun Gold (`#F59E0B`)**, **Island Palm Emerald (`#10B981`)**, and **Warm Obsidian Basalt (`#121316`)**.
 
 ### Semantic Travel Tokens
 
-- **Brand Primary Ocean (`--brand-ocean`)**: Light: `#0284C7` | Dark: `#38BDF8` | Glow: `rgba(56, 189, 248, 0.25)`
-- **Sunset Accent (`--accent-sunset`)**: Light: `#EA580C` | Dark: `#FB923C` | Glow: `rgba(251, 146, 60, 0.25)`
-- **Verdant Nature (`--nature-emerald`)**: Light: `#059669` | Dark: `#34D399` | Glow: `rgba(52, 211, 153, 0.25)`
-- **Autosweep Gold**: `#D97706` (Amber-600)
+- **Brand Primary Sunset (`--brand-primary` / `--brand-sunset`)**: `#FF5A36` (Sunset Terracotta — Manila Bay / Elyu sunset). Glow: `rgba(255, 90, 54, 0.25)`
+- **Tropical Sun Gold (`--accent-gold`)**: `#F59E0B` (Amber-500 — Autosweep, sunny highway drives, active badges). Glow: `rgba(245, 158, 11, 0.25)`
+- **Island Palm Emerald (`--nature-emerald`)**: `#10B981` (Emerald-500 — Settled KKB debts, verified payments, commuter transit). Glow: `rgba(16, 185, 129, 0.25)`
+- **Autosweep Gold**: `#F59E0B` (Amber-500)
 - **Easytrip Blue**: `#0284C7` (Sky-600)
 
 ### Surface & Neutral Hierarchy
 
-| Token               | Light Mode Hex         | Dark Mode Hex             | Usage                                    |
-| :------------------ | :--------------------- | :------------------------ | :--------------------------------------- |
-| `background`        | `#F8FAFC` (Slate-50)   | `#090D16` (Midnight Surf) | Screen background                        |
-| `surface`           | `#FFFFFF` (Pure White) | `#111827` (Gray-900)      | Cards, itinerary timeline, drawer panels |
-| `surface-secondary` | `#F1F5F9` (Slate-100)  | `#1E293B` (Slate-800)     | Sub-sections, table headers, hover tiles |
-| `border`            | `#E2E8F0` (Slate-200)  | `#334155` (Slate-700)     | Bento card borders, divider lines        |
-| `text-primary`      | `#0F172A` (Slate-900)  | `#F8FAFC` (Slate-50)      | Headers, trip titles, amounts            |
-| `text-secondary`    | `#64748B` (Slate-500)  | `#94A3B8` (Slate-400)     | Timestamps, subtitle metadata, notes     |
+| Token               | Light Mode Hex         | Dark Mode Hex              | Usage                                    |
+| :------------------ | :--------------------- | :------------------------- | :--------------------------------------- |
+| `background`        | `#F8FAFC` (Slate-50)   | `#121316` (Warm Obsidian)  | Screen canvas background                 |
+| `surface`           | `#FFFFFF` (Pure White) | `#1A1C23` (Warm Slate)     | Cards, itinerary timeline, drawer panels |
+| `surface-secondary` | `#F1F5F9` (Slate-100)  | `#242731` (Elevated Slate) | Sub-sections, table headers, hover tiles |
+| `border`            | `#E2E8F0` (Slate-200)  | `#2E323E` (Subtle Slate)   | Bento card borders, divider lines        |
+| `text-primary`      | `#0F172A` (Slate-900)  | `#F9FAFB` (Warm White)     | Headers, trip titles, amounts (WCAG AAA) |
+| `text-secondary`    | `#64748B` (Slate-500)  | `#9CA3AF` (Warm Slate)     | Timestamps, subtitle metadata, notes     |
+
+### Rule 4: Navigation Ergonomics & Zero Emojis (Material 3 & Apple HIG)
+
+- **4-Tab Bottom Dock Maximum**: Mobile bottom navigation bars must have between 3 to 5 destinations (Standard 4: **Trip**, **Itinerary**, **Convoy**, **Ledger**). Actions like Receipt Scanning are floating actions; sub-features like Packing belong in Trip.
+- **Zero Raw Emojis**: Emojis are strictly banned from navigation bars, action cards, headers, and badges. Always use unified vector icons from `@expo/vector-icons` (`Ionicons` / `Feather`).
 
 ---
 

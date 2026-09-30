@@ -4,46 +4,57 @@
  */
 
 export const AppColors = {
-  // Primary Brand & Nature Tokens
-  brandOcean: "#0284C7", // Deep Ocean Sky-600
-  brandOceanDark: "#0369A1",
-  brandOceanLight: "#38BDF8", // Cyan-400
-  accentSunset: "#EA580C", // Sunset Coral Orange-600
-  accentSunsetLight: "#FB923C", // Orange-400
-  natureEmerald: "#059669", // Tropical Palm Emerald-600
-  natureEmeraldLight: "#34D399", // Emerald-400
+  // Primary Brand & Nature Tokens (Philippine Sunset & Golden Hour)
+  brandPrimary: "#FF5A36", // Sunset Terracotta — Elyu / Manila Bay sunset
+  brandPrimaryDark: "#E04826",
+  brandPrimaryLight: "#FF8A65",
+  brandPrimaryBg: "rgba(255, 90, 54, 0.12)",
+
+  // Legacy Brand Ocean alias mapped to Sunset Terracotta for theme consistency
+  brandOcean: "#FF5A36",
+  brandOceanDark: "#E04826",
+  brandOceanLight: "#FF8A65",
+
+  accentSunset: "#FF5A36",
+  accentSunsetLight: "#FF8A65",
+  accentGold: "#F59E0B", // Tropical Sun Gold (Tolls, Highlights)
+  accentGoldBg: "rgba(245, 158, 11, 0.12)",
+
+  natureEmerald: "#10B981", // Island Palm Emerald-500
+  natureEmeraldLight: "#34D399",
+  natureEmeraldBg: "rgba(16, 185, 129, 0.12)",
 
   // Transit & RFID Semantic Badges
-  autosweep: "#D97706", // Autosweep Gold Amber-600
-  autosweepBg: "rgba(217, 119, 6, 0.12)",
-  autosweepBorder: "rgba(217, 119, 6, 0.35)",
+  autosweep: "#F59E0B", // Autosweep Gold Amber-500
+  autosweepBg: "rgba(245, 158, 11, 0.12)",
+  autosweepBorder: "rgba(245, 158, 11, 0.35)",
 
   easytrip: "#0284C7", // Easytrip Blue Sky-600
   easytripBg: "rgba(2, 132, 199, 0.12)",
   easytripBorder: "rgba(2, 132, 199, 0.35)",
 
-  commute: "#059669", // Commuter Emerald
-  commuteBg: "rgba(5, 150, 105, 0.12)",
-  commuteBorder: "rgba(5, 150, 105, 0.35)",
+  commute: "#10B981", // Commuter Emerald
+  commuteBg: "rgba(16, 185, 129, 0.12)",
+  commuteBorder: "rgba(16, 185, 129, 0.35)",
 
-  convoyActive: "#2563EB", // Blue-600
-  convoyActiveBg: "rgba(37, 99, 235, 0.12)",
-  convoyActiveBorder: "rgba(37, 99, 235, 0.35)",
+  convoyActive: "#FF5A36", // Active Convoy Beacon
+  convoyActiveBg: "rgba(255, 90, 54, 0.12)",
+  convoyActiveBorder: "rgba(255, 90, 54, 0.35)",
 
   // Financial Ledger Badges
-  unsettled: "#E11D48", // Rose-600 (Debt owed)
-  unsettledBg: "rgba(225, 29, 72, 0.12)",
-  unsettledBorder: "rgba(225, 29, 72, 0.35)",
+  unsettled: "#EF4444", // Rose-500 (Debt owed)
+  unsettledBg: "rgba(239, 68, 68, 0.12)",
+  unsettledBorder: "rgba(239, 68, 68, 0.35)",
 
-  settled: "#059669", // Emerald-600 (Paid / Settled)
-  settledBg: "rgba(5, 150, 105, 0.12)",
-  settledBorder: "rgba(5, 150, 105, 0.35)",
+  settled: "#10B981", // Emerald-500 (Paid / Settled)
+  settledBg: "rgba(16, 185, 129, 0.12)",
+  settledBorder: "rgba(16, 185, 129, 0.35)",
 
-  // Surface & Background (High-contrast Outdoor Theme)
-  darkBackground: "#090D16", // Midnight Surf Obsidian
-  darkSurface: "#111827", // Gray-900 Card Surface
-  darkSurfaceSecondary: "#1E293B", // Slate-800 Tile Surface
-  darkBorder: "#334155", // Slate-700 Border
+  // Surface & Background (Warm Obsidian High-Contrast Outdoor Theme)
+  darkBackground: "#121316", // Warm Obsidian
+  darkSurface: "#1A1C23", // Warm Slate Card Surface
+  darkSurfaceSecondary: "#242731", // Sub-section Tile Surface
+  darkBorder: "#2E323E", // Refined subtle border
 
   lightBackground: "#F8FAFC", // Slate-50
   lightSurface: "#FFFFFF", // Pure White
@@ -51,17 +62,17 @@ export const AppColors = {
   lightBorder: "#E2E8F0", // Slate-200
 
   // Text Hierarchy (WCAG AAA >= 7:1 for outdoor sunlight)
-  textPrimary: "#F8FAFC", // Slate-50 (Dark mode primary)
-  textSecondary: "#94A3B8", // Slate-400
-  textMuted: "#64748B", // Slate-500
-  textInverse: "#0F172A", // Slate-900 (Light mode primary)
+  textPrimary: "#F9FAFB", // High-contrast warm white
+  textSecondary: "#9CA3AF", // Slate-400
+  textMuted: "#6B7280", // Slate-500
+  textInverse: "#121316", // Dark primary
 
   // System Status
   success: "#10B981",
   warning: "#F59E0B",
   danger: "#EF4444",
   info: "#3B82F6",
-  offlineOrange: "#F97316",
+  offlineOrange: "#FF5A36",
 } as const;
 
 export type AppColorKey = keyof typeof AppColors;

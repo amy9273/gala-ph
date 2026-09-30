@@ -1,6 +1,6 @@
 # Progress Tracker — GalaPH
 
-## Current Status: Unit 17 Complete (Clean Architecture, Query Hygiene & Engineering Hardening)
+## Current Status: Unit 18 Complete (Mobile UI/UX & Brand System Redesign)
 
 ---
 
@@ -26,12 +26,20 @@
 | **Unit 15: Automated Testing & CI/CD**        | GitHub Actions pipeline, Jest/node test suites, quality gate verification                | ✅ Complete |
 | **Unit 16: UI/UX Ergonomics & Polish**        | High-glare contrast optimization, micro-interactions, 4-state UI loaders                 | ✅ Complete |
 | **Unit 17: Clean Architecture & Hardening**   | Anti-N+1 batching, transactional atomicity, PII masking, shared debt solver, pagination  | ✅ Complete |
+| **Unit 18: Mobile UI/UX & Brand Redesign**    | Sunset Terracotta palette, Material 3 / HIG 4-tab navigation, vector icons, no emojis    | ✅ Complete |
 
 ---
 
 ### Recent Changes
 
-- Implemented **Unit 17 (Clean Architecture, Query Hygiene & Engineering Hardening)**:
+- Implemented **Unit 18 (Mobile UI/UX & Brand System Redesign)**:
+  - Conducted deep research on travel app color psychology (Airbnb, Wanderlog, Klook, Polarsteps) and Philippine road trip culture, transitioning the brand identity from cold cyber-blue (`#00C2A8`, `#0284C7`, `#090D16`) to **Sunset Terracotta (`#FF5A36`)**, **Tropical Sun Gold (`#F59E0B`)**, and **Warm Obsidian (`#121316`)** surfaces.
+  - Enforced Apple HIG and Google Material Design 3 mobile navigation standards: reduced the bottom navigation dock from a cluttered 7-tab bar to the standard **4 root tabs** (`Trip`, `Itinerary`, `Convoy`, `Ledger`).
+  - Purged all raw Unicode emojis across navigation, action cards, headers, and badges, replacing them with crisp, unified vector icons from `@expo/vector-icons` (`Ionicons`).
+  - Relocated actions into proper mobile hierarchy: embedded **Bayanihan Packing** checklist summary directly in Trip Overview, converted **Scan OCR Receipt** into a prominent primary action, and bound **Offline Outbox Sync** to the header status pill with nested back navigation.
+  - Eliminated box-in-box border fatigue with subtle warm surface elevation and generous 16px breathing room.
+  - Preserved 100% of offline SQLite storage, outbox mutations, receipt OCR extraction, and convoy HUD telemetry.
+  - Verified full quality check loop: 100% Prettier formatting (`npm run format:check`), 0 type errors across all 4 workspaces (`npm run typecheck --workspaces`), 0 ESLint errors (`npm run lint`), clean Metro export on Android and iOS (`npx expo export --no-bytecode`), and 122/122 tests passing monorepo-wide (`npm test`).
   - Formulated and instituted universal software engineering best practices in `context/engineering-best-practices.md` (Code Readability, Clean Architecture, Defensive Error Handling, Query Hygiene, Security/PII, and Testing Standards).
   - Configured Pino logger PII & secret redaction in `apps/api/src/lib/logger.ts` (`password`, `token`, `phone`, `gcashNumber`, `mayaNumber`).
   - Standardized API error responses across `apps/api/src/middlewares/error.middleware.ts` with uniform `{ success: false, error: { code, message, correlationId, details } }` contract.

@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
+import {
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "./theme/colors";
 import { NetworkStatusBar } from "./components/ui/NetworkStatusBar";
 import { BottomTabBar, type TabKey } from "./navigation/BottomTabBar";
@@ -13,8 +21,18 @@ import { SyncQueueScreen } from "./screens/SyncQueueScreen";
 import { outboxSyncService } from "./services/outbox-sync.service";
 import type { NetworkConnectionState } from "./types";
 
+type ScreenKey =
+  | "overview"
+  | "itinerary"
+  | "convoy"
+  | "expenses"
+  | "packing"
+  | "scanner"
+  | "sync";
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeScreen, setActiveScreen] = useState<ScreenKey>("overview");
+  const [previousScreen, setPreviousScreen] = useState<ScreenKey>("overview");
   const [networkState, setNetworkState] = useState<NetworkConnectionState>(
     outboxSyncService.getNetworkState(),
   );
@@ -31,28 +49,80 @@ export default function App() {
     return unsub;
   }, []);
 
+  const navigateTo = (screen: ScreenKey) => {
+    setPreviousScreen(activeScreen);
+    setActiveScreen(screen);
+  };
+
+  const goBack = () => {
+    setActiveScreen(
+      previousScreen === activeScreen ? "overview" : previousScreen,
+    );
+  };
+
+  // Determine which root bottom tab to highlight
+  const getActiveTabKey = (): TabKey => {
+    if (activeScreen === "itinerary") return "itinerary";
+    if (activeScreen === "convoy") return "convoy";
+    if (
+      activeScreen === "expenses" ||
+      activeScreen === "scanner" ||
+      activeScreen === "sync"
+    )
+      return "expenses";
+    return "overview";
+  };
+
+  const renderSecondaryHeader = (title: string) => (
+    <View style={styles.subHeader}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={goBack}
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={20} color={AppColors.textPrimary} />
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
+      <Text style={styles.subHeaderTitle}>{title}</Text>
+      <View style={{ width: 50 }} />
+    </View>
+  );
+
   const renderScreen = () => {
-    switch (activeTab) {
+    switch (activeScreen) {
       case "overview":
-        return <TripOverviewScreen onNavigateTab={setActiveTab} />;
+        return <TripOverviewScreen onNavigateTab={navigateTo} />;
       case "convoy":
         return <ConvoyHudScreen />;
       case "itinerary":
         return <ItineraryScreen />;
-      case "scanner":
-        return (
-          <ReceiptScannerScreen
-            onNavigateToLedger={() => setActiveTab("expenses")}
-          />
-        );
-      case "packing":
-        return <PackingScreen />;
       case "expenses":
         return <ExpensesScreen />;
+      case "packing":
+        return (
+          <View style={styles.screenFlex}>
+            {renderSecondaryHeader("Bayanihan Packing")}
+            <PackingScreen />
+          </View>
+        );
+      case "scanner":
+        return (
+          <View style={styles.screenFlex}>
+            {renderSecondaryHeader("Scan Receipt OCR")}
+            <ReceiptScannerScreen
+              onNavigateToLedger={() => setActiveScreen("expenses")}
+            />
+          </View>
+        );
       case "sync":
-        return <SyncQueueScreen />;
+        return (
+          <View style={styles.screenFlex}>
+            {renderSecondaryHeader("Offline Outbox Queue")}
+            <SyncQueueScreen />
+          </View>
+        );
       default:
-        return <TripOverviewScreen onNavigateTab={setActiveTab} />;
+        return <TripOverviewScreen onNavigateTab={navigateTo} />;
     }
   };
 
@@ -66,7 +136,7 @@ export default function App() {
         {/* Network & Offline Outbox Status Bar */}
         <NetworkStatusBar
           state={networkState}
-          onSyncPress={() => setActiveTab("sync")}
+          onSyncPress={() => navigateTo("sync")}
           onToggleSimulatedOffline={() => {
             outboxSyncService.setOnlineStatus(!networkState.isOnline);
           }}
@@ -75,10 +145,10 @@ export default function App() {
         {/* Main Content Area */}
         <View style={styles.screenContainer}>{renderScreen()}</View>
 
-        {/* Bottom Tab Navigation Dock */}
+        {/* Bottom Tab Navigation Dock (4 Root Tabs) */}
         <BottomTabBar
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          activeTab={getActiveTabKey()}
+          onSelectTab={(tab) => setActiveScreen(tab)}
           pendingCount={networkState.pendingOutboxCount}
         />
       </View>
@@ -97,5 +167,35 @@ const styles = StyleSheet.create({
   },
   screenContainer: {
     flex: 1,
+  },
+  screenFlex: {
+    flex: 1,
+  },
+  subHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: AppColors.darkSurface,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.darkBorder,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  backButtonText: {
+    color: AppColors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  subHeaderTitle: {
+    color: AppColors.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

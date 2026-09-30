@@ -8,6 +8,7 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
 import { AppTypography } from "../theme/typography";
@@ -156,7 +157,15 @@ export const ConvoyHudScreen: React.FC = () => {
       {/* Top HUD Mode Switcher */}
       <View style={styles.topBar}>
         <View style={styles.tripBadgeCol}>
-          <Text style={styles.topBarTitle}>🚘 CONVOY COCKPIT</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Ionicons
+              name="navigate"
+              size={15}
+              color={AppColors.brandPrimary}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.topBarTitle}>CONVOY COCKPIT</Text>
+          </View>
           <Text style={styles.topBarSub}>Elyu Surf Weekend • TPLEX North</Text>
         </View>
 
@@ -209,7 +218,12 @@ export const ConvoyHudScreen: React.FC = () => {
       {/* Straggler Proximity Warning Banner */}
       {hasStraggler && !activeSos && (
         <View style={styles.stragglerBanner}>
-          <Text style={styles.stragglerIcon}>⚠️</Text>
+          <Ionicons
+            name="warning"
+            size={18}
+            color={AppColors.warning}
+            style={{ marginRight: 10 }}
+          />
           <View style={styles.stragglerTextCol}>
             <Text style={styles.stragglerTitle}>STRAGGLER ADVISORY</Text>
             <Text style={styles.stragglerDesc}>
@@ -290,9 +304,15 @@ export const ConvoyHudScreen: React.FC = () => {
         {/* Simulation Sandbox Card */}
         <Card style={styles.simCard}>
           <View style={styles.simHeader}>
-            <Text style={styles.simTitle}>
-              🧪 CONVOY SIMULATION TEST CONTROLS
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="flask-outline"
+                size={15}
+                color={AppColors.textSecondary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.simTitle}>CONVOY SIMULATION</Text>
+            </View>
             <Badge
               label={isSimulatingDrive ? "DRIVING ON" : "DRIVING OFF"}
               variant={isSimulatingDrive ? "success" : "neutral"}
@@ -313,10 +333,14 @@ export const ConvoyHudScreen: React.FC = () => {
               ]}
               onPress={() => setIsSimulatingDrive(!isSimulatingDrive)}
             >
+              <Ionicons
+                name={isSimulatingDrive ? "pause" : "play"}
+                size={14}
+                color={isSimulatingDrive ? "#FFFFFF" : AppColors.brandPrimary}
+                style={{ marginRight: 6 }}
+              />
               <Text style={styles.simToggleText}>
-                {isSimulatingDrive
-                  ? "⏹️ PAUSE SIMULATION"
-                  : "▶️ START DRIVE SIM"}
+                {isSimulatingDrive ? "PAUSE SIMULATION" : "START DRIVE SIM"}
               </Text>
             </TouchableOpacity>
 
@@ -332,7 +356,13 @@ export const ConvoyHudScreen: React.FC = () => {
                 refreshTelemetry();
               }}
             >
-              <Text style={styles.simResetText}>🔄 RESET</Text>
+              <Ionicons
+                name="refresh"
+                size={13}
+                color={AppColors.textSecondary}
+                style={{ marginRight: 4 }}
+              />
+              <Text style={styles.simResetText}>RESET</Text>
             </TouchableOpacity>
           </View>
         </Card>

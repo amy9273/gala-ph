@@ -19,6 +19,7 @@ import { CardSkeleton } from "../components/ui/SkeletonLoader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { CurrencyDisplay } from "../components/ui/CurrencyDisplay";
+import { Ionicons } from "@expo/vector-icons";
 import { expenseRepository } from "../lib/sqlite/repositories/expense.repository";
 import { outboxSyncService } from "../services/outbox-sync.service";
 import type { LocalExpense } from "../types";
@@ -234,7 +235,17 @@ export const ExpensesScreen: React.FC = () => {
               <View style={styles.splitsList}>
                 {expense.splits.map((split) => (
                   <View key={split.id} style={styles.splitRow}>
-                    <Text style={styles.splitUser}>👤 {split.userName}</Text>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={13}
+                        color={AppColors.textSecondary}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text style={styles.splitUser}>{split.userName}</Text>
+                    </View>
                     <View style={styles.splitAmountRow}>
                       <CurrencyDisplay
                         centavos={split.amountCentavos}

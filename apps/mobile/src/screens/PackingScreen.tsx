@@ -22,17 +22,19 @@ import { outboxSyncService } from "../services/outbox-sync.service";
 import type { LocalPackingItem } from "../types";
 import type { PackingCategory } from "@gala-ph/shared";
 
+import { Ionicons } from "@expo/vector-icons";
+
 const CATEGORIES: Array<{
   key: PackingCategory | "ALL";
   label: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
 }> = [
-  { key: "ALL", label: "All Items", icon: "🎒" },
-  { key: "GEAR", label: "Gear", icon: "⛺" },
-  { key: "FOOD_DRINKS", label: "Food & Drinks", icon: "🍖" },
-  { key: "MEDICAL", label: "Medical", icon: "🩹" },
-  { key: "COMFORT", label: "Comfort", icon: "🏖️" },
-  { key: "DOCUMENTS", label: "Docs / Cash", icon: "💵" },
+  { key: "ALL", label: "All Items", icon: "layers-outline" },
+  { key: "GEAR", label: "Gear", icon: "construct-outline" },
+  { key: "FOOD_DRINKS", label: "Food & Drinks", icon: "restaurant-outline" },
+  { key: "MEDICAL", label: "Medical", icon: "medkit-outline" },
+  { key: "COMFORT", label: "Comfort", icon: "bed-outline" },
+  { key: "DOCUMENTS", label: "Docs / Cash", icon: "wallet-outline" },
 ];
 
 export const PackingScreen: React.FC = () => {
@@ -146,7 +148,16 @@ export const PackingScreen: React.FC = () => {
               selectedCategory === cat.key && styles.categoryChipActive,
             ]}
           >
-            <Text style={styles.categoryChipIcon}>{cat.icon}</Text>
+            <Ionicons
+              name={cat.icon}
+              size={14}
+              color={
+                selectedCategory === cat.key
+                  ? "#FFFFFF"
+                  : AppColors.textSecondary
+              }
+              style={{ marginRight: 6 }}
+            />
             <Text
               style={[
                 styles.categoryChipText,
@@ -201,7 +212,7 @@ export const PackingScreen: React.FC = () => {
                     ]}
                   >
                     {item.isPacked ? (
-                      <Text style={styles.checkmark}>✓</Text>
+                      <Ionicons name="checkmark" size={15} color="#FFFFFF" />
                     ) : null}
                   </View>
                 </View>
@@ -219,9 +230,7 @@ export const PackingScreen: React.FC = () => {
                   <View style={styles.itemMeta}>
                     <Text style={styles.metaText}>
                       Qty: {item.quantity} •{" "}
-                      {item.assignedToName
-                        ? `👤 ${item.assignedToName}`
-                        : "Unassigned"}
+                      {item.assignedToName ? item.assignedToName : "Unassigned"}
                     </Text>
 
                     {!item.isSynced ? (

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
 import { AppTypography } from "../theme/typography";
@@ -96,7 +97,15 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
           onPress={() => setTorchOn(!torchOn)}
           style={[styles.torchButton, torchOn && styles.torchButtonActive]}
         >
-          <Text style={styles.torchText}>{torchOn ? "🔦 ON" : "🔦 OFF"}</Text>
+          <Ionicons
+            name={torchOn ? "flashlight" : "flashlight-outline"}
+            size={16}
+            color={torchOn ? AppColors.accentGold : AppColors.textSecondary}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={styles.torchText}>
+            {torchOn ? "TORCH ON" : "TORCH OFF"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -123,7 +132,12 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
             </View>
           ) : (
             <View style={styles.viewfinderContent}>
-              <Text style={styles.viewfinderIcon}>📸</Text>
+              <Ionicons
+                name="scan-outline"
+                size={44}
+                color={AppColors.brandPrimary}
+                style={{ marginBottom: 10 }}
+              />
               <Text style={styles.viewfinderPrompt}>
                 Align receipt inside frame
               </Text>
@@ -143,7 +157,7 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
             style={styles.shutterOuter}
           >
             <View style={styles.shutterInner}>
-              <Text style={styles.shutterIcon}>⚡</Text>
+              <Ionicons name="camera" size={26} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
           <Text style={styles.shutterLabel}>Snap & Auto-Extract</Text>
@@ -164,7 +178,16 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
                 selectedPreset === "tagpuanSanJuan" && styles.presetChipActive,
               ]}
             >
-              <Text style={styles.presetEmoji}>🦐</Text>
+              <Ionicons
+                name="restaurant-outline"
+                size={14}
+                color={
+                  selectedPreset === "tagpuanSanJuan"
+                    ? "#FFFFFF"
+                    : AppColors.brandPrimary
+                }
+                style={{ marginRight: 6 }}
+              />
               <Text
                 style={[
                   styles.presetChipText,
@@ -183,7 +206,16 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
                 selectedPreset === "kahunaBrunch" && styles.presetChipActive,
               ]}
             >
-              <Text style={styles.presetEmoji}>🥑</Text>
+              <Ionicons
+                name="cafe-outline"
+                size={14}
+                color={
+                  selectedPreset === "kahunaBrunch"
+                    ? "#FFFFFF"
+                    : AppColors.accentGold
+                }
+                style={{ marginRight: 6 }}
+              />
               <Text
                 style={[
                   styles.presetChipText,
@@ -202,7 +234,16 @@ export const ReceiptScannerScreen: React.FC<ReceiptScannerScreenProps> = ({
                 selectedPreset === "balerSurfside" && styles.presetChipActive,
               ]}
             >
-              <Text style={styles.presetEmoji}>🏄</Text>
+              <Ionicons
+                name="flame-outline"
+                size={14}
+                color={
+                  selectedPreset === "balerSurfside"
+                    ? "#FFFFFF"
+                    : AppColors.brandPrimary
+                }
+                style={{ marginRight: 6 }}
+              />
               <Text
                 style={[
                   styles.presetChipText,
