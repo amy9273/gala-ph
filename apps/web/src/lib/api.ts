@@ -1,3 +1,5 @@
+import { solveGreedyDebtGraph } from "@gala-ph/shared";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -982,71 +984,32 @@ export function solveDebtGraph(
     };
   });
 
-  // Partition into Creditors (net > 0) and Debtors (net < 0)
-  interface Party {
-    userId: string;
-    userName: string;
-    amountCentavos: number;
-  }
-
-  const creditors: Party[] = [];
-  const debtors: Party[] = [];
-
-  for (const m of members) {
+  const memberInputs = members.map((m) => {
     const netCentavos =
       (paidCentavos[m.userId] || 0) - (owedCentavos[m.userId] || 0);
-    if (netCentavos > 0) {
-      creditors.push({
-        userId: m.userId,
-        userName: m.user.name,
-        amountCentavos: netCentavos,
-      });
-    } else if (netCentavos < 0) {
-      debtors.push({
-        userId: m.userId,
-        userName: m.user.name,
-        amountCentavos: -netCentavos,
-      });
-    }
-  }
+    return {
+      userId: m.userId,
+      name: m.user.name,
+      netBalanceCentavos: netCentavos,
+    };
+  });
 
-  creditors.sort((a, b) => b.amountCentavos - a.amountCentavos);
-  debtors.sort((a, b) => b.amountCentavos - a.amountCentavos);
+  const transfers = solveGreedyDebtGraph(memberInputs);
 
-  const settlements: DebtSettlement[] = [];
-  let cIdx = 0;
-  let dIdx = 0;
   let sCount = 1;
-
-  while (cIdx < creditors.length && dIdx < debtors.length) {
-    const creditor = creditors[cIdx]!;
-    const debtor = debtors[dIdx]!;
-
-    const settledCentavos = Math.min(
-      creditor.amountCentavos,
-      debtor.amountCentavos,
-    );
-
-    settlements.push({
-      id: `stl-${sCount++}`,
-      fromUserId: debtor.userId,
-      fromUserName: debtor.userName,
-      toUserId: creditor.userId,
-      toUserName: creditor.userName,
-      amount: settledCentavos / 100,
-      amountCentavos: settledCentavos,
-      recipientGcash: "0917-123-4567",
-      recipientMaya: "0917-123-4567",
-      paymentRefCode: `GALA-KKB-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-      isSettled: false,
-    });
-
-    creditor.amountCentavos -= settledCentavos;
-    debtor.amountCentavos -= settledCentavos;
-
-    if (creditor.amountCentavos === 0) cIdx++;
-    if (debtor.amountCentavos === 0) dIdx++;
-  }
+  const settlements: DebtSettlement[] = transfers.map((t) => ({
+    id: `stl-${sCount++}`,
+    fromUserId: t.fromUserId,
+    fromUserName: t.fromUserName,
+    toUserId: t.toUserId,
+    toUserName: t.toUserName,
+    amount: t.amountPesos,
+    amountCentavos: t.amountCentavos,
+    recipientGcash: "0917-123-4567",
+    recipientMaya: "0917-123-4567",
+    paymentRefCode: `GALA-KKB-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+    isSettled: false,
+  }));
 
   return { balances, settlements };
 }

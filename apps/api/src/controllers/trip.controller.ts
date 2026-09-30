@@ -24,7 +24,16 @@ export class TripController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const trips = await tripService.getUserTrips(req.user!.id);
+      const page = req.query.page
+        ? parseInt(req.query.page as string, 10)
+        : undefined;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string, 10)
+        : undefined;
+      const trips = await tripService.getUserTrips(req.user!.id, {
+        page,
+        limit,
+      });
       res.status(200).json({ trips });
     } catch (err) {
       next(err);

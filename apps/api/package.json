@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/__tests__/index.test.ts src/__tests__/unit-02-prisma.test.ts src/__tests__/unit-03-auth-trip.test.ts src/__tests__/unit-04-toll-fuel.test.ts src/__tests__/unit-05-transit-toda.test.ts src/__tests__/unit-06-kkb-ledger.test.ts src/__tests__/unit-07-convoy-packing.test.ts",
+    "test": "node --import tsx --test src/__tests__/index.test.ts src/__tests__/unit-02-prisma.test.ts src/__tests__/unit-03-auth-trip.test.ts src/__tests__/unit-04-toll-fuel.test.ts src/__tests__/unit-05-transit-toda.test.ts src/__tests__/unit-06-kkb-ledger.test.ts src/__tests__/unit-07-convoy-packing.test.ts src/__tests__/unit-17-hardening.test.ts",
     "lint": "eslint src --ext .ts",
     "prisma:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",

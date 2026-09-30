@@ -233,3 +233,9 @@ export const HealthStatusSchema = z.object({
   version: z.string().optional(),
 });
 export type HealthStatus = z.infer<typeof HealthStatusSchema>;
+
+// ==========================================
+// 6. Pure Domain Ledger & Debt Graph Solver
+// ==========================================
+
+export * from "./ledger.js";

@@ -98,13 +98,22 @@ export class TripService {
     });
   }
 
-  async getUserTrips(userId: string) {
+  async getUserTrips(
+    userId: string,
+    pagination: { page?: number; limit?: number } = {},
+  ) {
+    const page = Math.max(1, pagination.page || 1);
+    const limit = Math.min(100, Math.max(1, pagination.limit || 50));
+    const skip = (page - 1) * limit;
+
     const trips = await prisma.trip.findMany({
       where: {
         members: {
           some: { userId },
         },
       },
+      take: limit,
+      skip,
       include: {
         members: {
           include: {
