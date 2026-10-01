@@ -11,6 +11,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "./theme/colors";
 import { NetworkStatusBar } from "./components/ui/NetworkStatusBar";
 import { BottomTabBar, type TabKey } from "./navigation/BottomTabBar";
+import {
+  QuickActionSheet,
+  type QuickActionType,
+} from "./components/ui/QuickActionSheet";
 import { TripOverviewScreen } from "./screens/TripOverviewScreen";
 import { ItineraryScreen } from "./screens/ItineraryScreen";
 import { PackingScreen } from "./screens/PackingScreen";
@@ -26,6 +30,10 @@ type ScreenKey =
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("overview");
   const [previousScreen, setPreviousScreen] = useState<ScreenKey>("overview");
+  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const [triggerAction, setTriggerAction] = useState<"create_trip" | null>(
+    null,
+  );
   const [networkState, setNetworkState] = useState<NetworkConnectionState>(
     outboxSyncService.getNetworkState(),
   );
@@ -56,6 +64,7 @@ export default function App() {
   // Determine which root bottom tab to highlight
   const getActiveTabKey = (): TabKey => {
     if (activeScreen === "itinerary") return "itinerary";
+    if (activeScreen === "packing") return "packing";
     if (
       activeScreen === "expenses" ||
       activeScreen === "scanner" ||
@@ -63,6 +72,24 @@ export default function App() {
     )
       return "expenses";
     return "overview";
+  };
+
+  const handleActionSheetSelect = (action: QuickActionType) => {
+    switch (action) {
+      case "scan":
+        navigateTo("scanner");
+        break;
+      case "itinerary":
+        navigateTo("itinerary");
+        break;
+      case "packing":
+        navigateTo("packing");
+        break;
+      case "create_trip":
+        setTriggerAction("create_trip");
+        navigateTo("overview");
+        break;
+    }
   };
 
   const renderSecondaryHeader = (title: string) => (
@@ -83,7 +110,13 @@ export default function App() {
   const renderScreen = () => {
     switch (activeScreen) {
       case "overview":
-        return <TripOverviewScreen onNavigateTab={navigateTo} />;
+        return (
+          <TripOverviewScreen
+            onNavigateTab={navigateTo}
+            triggerAction={triggerAction}
+            onClearTriggerAction={() => setTriggerAction(null)}
+          />
+        );
       case "itinerary":
         return <ItineraryScreen />;
       case "expenses":
@@ -112,7 +145,13 @@ export default function App() {
           </View>
         );
       default:
-        return <TripOverviewScreen onNavigateTab={navigateTo} />;
+        return (
+          <TripOverviewScreen
+            onNavigateTab={navigateTo}
+            triggerAction={triggerAction}
+            onClearTriggerAction={() => setTriggerAction(null)}
+          />
+        );
     }
   };
 
@@ -135,11 +174,19 @@ export default function App() {
         {/* Main Content Area */}
         <View style={styles.screenContainer}>{renderScreen()}</View>
 
-        {/* Bottom Tab Navigation Dock (4 Root Tabs) */}
+        {/* Bottom Tab Navigation Dock with Highlighted Center Action */}
         <BottomTabBar
           activeTab={getActiveTabKey()}
           onSelectTab={(tab) => setActiveScreen(tab)}
+          onPressCenterAction={() => setIsActionSheetOpen(true)}
           pendingCount={networkState.pendingOutboxCount}
+        />
+
+        {/* Global Quick Action Sheet */}
+        <QuickActionSheet
+          visible={isActionSheetOpen}
+          onClose={() => setIsActionSheetOpen(false)}
+          onSelectAction={handleActionSheetSelect}
         />
       </View>
     </SafeAreaView>
@@ -160,32 +207,33 @@ const styles = StyleSheet.create({
   },
   screenFlex: {
     flex: 1,
+    backgroundColor: AppColors.background,
   },
   subHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: AppColors.darkSurface,
+    paddingVertical: 12,
+    backgroundColor: AppColors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: AppColors.darkBorder,
+    borderBottomColor: AppColors.border,
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 4,
-    paddingRight: 8,
+    paddingHorizontal: 8,
   },
   backButtonText: {
-    color: AppColors.textPrimary,
     fontSize: 14,
+    color: AppColors.textPrimary,
     fontWeight: "600",
     marginLeft: 4,
   },
   subHeaderTitle: {
-    color: AppColors.textPrimary,
     fontSize: 16,
     fontWeight: "700",
+    color: AppColors.textPrimary,
   },
 });

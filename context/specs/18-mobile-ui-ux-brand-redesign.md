@@ -50,31 +50,42 @@ This unit executes a comprehensive UI/UX and brand identity transformation:
 
 ## 4. Navigation & Component Specifications
 
-### 4.1. Bottom Tab Bar (`apps/mobile/src/navigation/BottomTabBar.tsx`)
+### 4.1. Bottom Tab Bar with Elevated Center Action Dock (`BottomTabBar.tsx`)
 
-- Exactly 3 root destinations:
-  1. `overview` — **Trip** (`compass-outline` / `compass`)
-  2. `itinerary` — **Itinerary** (`calendar-outline` / `calendar`)
-  3. `expenses` — **KKB Ledger** (`receipt-outline` / `receipt`)
-- Height: 64dp with 48dp minimum touch target.
-- Active state: Sunset Terracotta icon fill with glowing indicator pill.
+- **Balanced 4-Tab Navigation**:
+  - Left group: `overview` (**Trip**) & `itinerary` (**Itinerary**).
+  - Right group: `packing` (**Packing**) & `expenses` (**KKB Ledger**).
+- **Highlighted Center Action Floating Button (FAB)**:
+  - 52dp elevated circular button centered between left and right tab pairs.
+  - Floats -24dp above the top edge with a radiant Sunset Terracotta (`#FF5A36`) shadow glow (`elevation: 8`).
+  - Tapping opens the **Global Quick Action Sheet** (`QuickActionSheet.tsx`) with fast-track shortcuts:
+    - 🧾 **Split Expense / Scan Receipt** (Highlighted Primary Action).
+    - 📍 **Add Itinerary Stop**.
+    - 🎒 **Add Shared Packing Gear**.
+    - ✈️ **Create New Trip**.
 
-### 4.2. Action Relocation & Floating Triggers
+### 4.2. Trip Lifecycle Management & Modals (`TripOverviewScreen.tsx`)
 
-- **Scan Receipt (OCR)**: Accessible via:
-  1. Prominent "Scan Receipt" action on Trip Overview.
-  2. Primary action in Ledger Screen.
-- **Bayanihan Packing**: Accessible via Trip Overview checklist preview card with direct modal or sub-view toggle.
-- **Outbox Sync**: Header status pill (`NetworkStatusBar.tsx`) is clickable, displaying pending mutation count and opening the `SyncQueueScreen`.
+- **Trip Switcher Header**:
+  - Displays current active gala with dropdown chevron (`[📍 Active Gala ▼]`).
+  - Tapping opens the **Trip Switcher Modal** allowing 1-tap switching between all trips stored in local SQLite.
+  - Top-right `+ New Gala` button launches the **Create Trip Modal**.
+- **Create Trip Flow**:
+  - Modal with fields: Title, Destination, Dates, and Assembly Point.
+  - Atomically saves to `local_trips`, sets up user as `TRIP_LEAD`, and dynamically sets the new trip as active.
+- **Edit Trip Flow**:
+  - Accessible via `[✏️ Edit Trip]` button located directly on Card 1 top bar.
+  - Allows in-place editing of Title, Destination, Dates, and Assembly / Departure point.
+  - Saves to SQLite and refreshes overview state with an instant confirmation toast.
 
 ### 4.3. Radically Simplified 3-Card Architecture (`TripOverviewScreen.tsx`)
 
 To eliminate administrative cognitive overload ("Jira-fication"), the home view is structured into exactly 3 high-impact cards:
 
 1. **Card 1: Trip Hero Card (Where & When)**:
-   - Destination title, dates, and assembly info (`📍 Shell Magallanes • 4:00 AM Departure`).
+   - Destination title, dates, assembly coordinates (`📍 Shell Magallanes • 4:00 AM Departure`), and inline `[✏️ Edit Trip]` action.
    - Clean offline badge pill + invite code.
-   - 1-tap **"Share Invite to Group Chat"** button directly copying the pre-formatted Messenger deep link with a toast (no multi-tab modals).
+   - 1-tap **"Share Invite to Group Chat"** button directly copying the pre-formatted Messenger deep link with a toast.
 2. **Card 2: Barkada & Quick Split (Who & Money)**:
    - Horizontal avatar stack (`[JD] [MS] [CD] + Add Friend`) with member count badge.
    - Quick Add Friend: minimal 1-field name prompt modal.

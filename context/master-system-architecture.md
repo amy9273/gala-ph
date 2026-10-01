@@ -228,17 +228,40 @@ For true offline provincial resilience, the mobile client mirrors the active tri
 
 ## 5. System Functionalities & Domain Engines
 
-### 5.1. Radically Simplified 3-Card Mobile Hub
+### 5.1. Mobile Core Functions, Center Action Dock, & 3-Card Architecture
 
-1. **Trip Hero Card**:
-   - Destination, dates, and assembly banner (`📍 Shell Magallanes • 4:00 AM Departure`).
-   - 1-Tap **"Share to Group Chat"** button: instantly copies the pre-formatted invite link (`https://gala.ph/join/ELYU26`) with a clipboard toast.
-2. **Barkada & Quick Split Card**:
-   - Horizontal avatar stack (`[JD] [MS] [CD] + Add Friend`).
-   - Glanceable _Ambagan_: `Est. Ambagan: ₱1,750 / head` alongside total logged expenses.
-   - Primary CTA: **"+ Split Expense / Scan Receipt"**.
-3. **Shared Essentials Card**:
-   - 1-tap **"Claim It"** checklist: tapping an unclaimed item claims it for the user; tapping the checkmark marks it packed.
+The mobile interface is architected around the most frequent high-stress group travel friction points, with crystal-clear trip management and a prominent, elevated Center Action Dock:
+
+1. **Trip Lifecycle Management (Add, Edit, Switch)**:
+   - **Create / Add a Trip**:
+     - _Trigger_: `+ New Gala` button in the header bar or via the Center Action Sheet.
+     - _Inputs_: Trip Title (e.g. _Baler Surf & Camp Weekend_), Destination (e.g. _Sabang Beach, Baler_), Start/End Dates, and Assembly Point (e.g. _Total NLEX Marilao • 3:30 AM_).
+     - _Engine_: Saves atomically to local SQLite (`local_trips`), auto-generates a short alphanumeric invite code (e.g. `BALE24`), sets up the user as `TRIP_LEAD`, and switches active trip context.
+   - **Edit Trip Details**:
+     - _Trigger_: `[✏️ Edit Trip]` button directly on Card 1 (The Trip Card).
+     - _Scope_: In-place editing of Title, Destination, Travel Dates, and Meetup / Assembly Point & Departure Time.
+     - _Engine_: Updates `local_trips`, refreshes live overview cards, enqueues an `UPDATE_TRIP` outbox mutation, and displays an instant success toast.
+   - **Switch Active Gala**:
+     - _Trigger_: Tapping the active trip dropdown in the top header (`[📍 San Juan, La Union Gala ▼]`).
+     - _Scope_: Opens the **Trip Switcher Modal** displaying all offline-cached trips with destination and member count. 1-tap switches the active trip and dynamically reloads itinerary, expenses, and gear.
+   - **Barkada Onboarding**:
+     - 1-tap **"Share to Group Chat"** button: instantly copies the pre-formatted invite link (`https://gala.ph/join/ELYU26`) with a clipboard toast for Messenger/Viber.
+     - `+ Add Friend` modal: minimal 1-field name prompt for on-the-fly ambagan attribution.
+
+2. **Highlighted Center Action Dock (Elevated FAB & Quick Action Sheet)**:
+   - **Visual Hierarchy & Ergonomics**:
+     - Centered between navigation tab pairs (`[Trip]` `[Itinerary]` **( (+) Center FAB )** `[Packing]` `[KKB Ledger]`).
+     - 52dp elevated circular button floating above the tab bar with a radiant Sunset Terracotta (`#FF5A36`) glow, meeting high-contrast outdoor visibility standards.
+   - **Quick Action Sheet Triggers**:
+     - 🧾 **Split Expense / Scan Receipt (Primary Highlighted)**: Direct camera OCR scan or quick manual bill split with non-drinker exclusion.
+     - 📍 **Add Itinerary Stop**: Fast-entry form for destination stop, time slot, and estimated cost.
+     - 🎒 **Add Shared Packing Gear**: Add cooler, butane burner, beach tent, or speaker with 1-tap "I will bring this" toggle.
+     - ✈️ **Start a New Gala**: Launches the Create Trip flow.
+
+3. **Glanceable 3-Card Architecture**:
+   - **Card 1: Trip Hero Card (Where & When)**: Destination, travel dates, assembly coordinates, invite code, and inline `[✏️ Edit Trip]` control.
+   - **Card 2: Barkada & Quick Split Card (Who & Money)**: Horizontal avatar stack, glanceable per-head _Ambagan_ estimate (`₱1,750 / head`), total logged spend, and the primary high-contrast **"+ Split Expense / Scan Receipt"** CTA.
+   - **Card 3: Shared Essentials Card (What to Bring)**: 1-tap **"Claim It"** checklist (`[✋ Tap to Claim]` assigns item to user; checkmark marks it packed).
 
 ---
 
