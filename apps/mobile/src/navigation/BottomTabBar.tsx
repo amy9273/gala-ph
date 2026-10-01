@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.surface,
     borderTopWidth: 1,
     borderTopColor: AppColors.border,
-    height: 68,
-    paddingBottom: 6,
+    height: 72,
+    paddingBottom: 10,
     paddingTop: 4,
     justifyContent: "space-between",
     alignItems: "center",
@@ -144,13 +144,15 @@ const styles = StyleSheet.create({
   iconWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 3,
+    width: 48,
+    height: 28,
     borderRadius: 14,
+    backgroundColor: "transparent",
     position: "relative",
   },
   iconWrapperActive: {
     backgroundColor: AppColors.brandPrimaryBg,
+    borderRadius: 14,
   },
   label: {
     ...AppTypography.tiny,

@@ -122,12 +122,7 @@ export default function App() {
       case "expenses":
         return <ExpensesScreen />;
       case "packing":
-        return (
-          <View style={styles.screenFlex}>
-            {renderSecondaryHeader("Bayanihan Packing")}
-            <PackingScreen />
-          </View>
-        );
+        return <PackingScreen />;
       case "scanner":
         return (
           <View style={styles.screenFlex}>

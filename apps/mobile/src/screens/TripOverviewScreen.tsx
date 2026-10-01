@@ -378,10 +378,10 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
             <Ionicons name="compass" size={16} color={AppColors.brandPrimary} />
           </View>
           <View style={styles.switcherTextWrapper}>
-            <Text style={styles.switcherLabel}>ACTIVE GALA</Text>
+            <Text style={styles.switcherLabel}>SWITCH GALA</Text>
             <View style={styles.switcherTitleRow}>
               <Text style={styles.switcherTitle} numberOfLines={1}>
-                {trip.title}
+                {trip.destination}
               </Text>
               <Ionicons
                 name="chevron-down"
@@ -681,55 +681,6 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
             </TouchableOpacity>
           ))}
         </View>
-      </View>
-
-      {/* ======================================================== */}
-      {/* QUICK SHORTCUTS ROW                                      */}
-      {/* ======================================================== */}
-      <View style={styles.shortcutsRow}>
-        <TouchableOpacity
-          onPress={() => onNavigateTab("itinerary")}
-          style={styles.shortcutTile}
-        >
-          <Ionicons
-            name="calendar"
-            size={18}
-            color={AppColors.brandPrimary}
-            style={{ marginBottom: 4 }}
-          />
-          <Text style={styles.shortcutTitle}>Itinerary</Text>
-          <Text style={styles.shortcutSub}>{itinerary.length} stops</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onNavigateTab("packing")}
-          style={styles.shortcutTile}
-        >
-          <Ionicons
-            name="bag-check"
-            size={18}
-            color={AppColors.accentGold}
-            style={{ marginBottom: 4 }}
-          />
-          <Text style={styles.shortcutTitle}>Packing</Text>
-          <Text style={styles.shortcutSub}>
-            {packedCount}/{essentials.length} packed
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onNavigateTab("expenses")}
-          style={styles.shortcutTile}
-        >
-          <Ionicons
-            name="wallet"
-            size={18}
-            color={AppColors.natureEmerald}
-            style={{ marginBottom: 4 }}
-          />
-          <Text style={styles.shortcutTitle}>KKB Ledger</Text>
-          <Text style={styles.shortcutSub}>GCash settle</Text>
-        </TouchableOpacity>
       </View>
 
       {/* ======================================================== */}
@@ -1381,6 +1332,7 @@ const styles = StyleSheet.create({
   },
   essentialInfo: {
     flex: 1,
+    marginRight: 10,
   },
   essentialName: {
     ...AppTypography.bodyBold,
@@ -1409,29 +1361,6 @@ const styles = StyleSheet.create({
   },
   claimBadgeTextClaimed: {
     color: AppColors.natureEmerald,
-  },
-  shortcutsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  shortcutTile: {
-    flex: 1,
-    backgroundColor: AppColors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: AppColors.border,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    alignItems: "center",
-  },
-  shortcutTitle: {
-    ...AppTypography.caption,
-    fontWeight: "700",
-    color: AppColors.textPrimary,
-  },
-  shortcutSub: {
-    ...AppTypography.tiny,
-    color: AppColors.textMuted,
   },
   modalBackdrop: {
     flex: 1,

@@ -81,12 +81,27 @@ export const ItineraryScreen: React.FC = () => {
     // Reset inputs
     setActivity("");
     setLocation("");
-    setCostPesos("0");
   };
 
-  const filteredItems = selectedDay
-    ? items.filter((it) => it.dayNumber === selectedDay)
-    : items;
+  const parseTimeToMinutes = (timeStr: string): number => {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) return 0;
+    let hours = parseInt(match[1] || "0", 10);
+    const minutes = parseInt(match[2] || "0", 10);
+    const period = (match[3] || "").toUpperCase();
+    if (period === "PM" && hours < 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  };
+
+  const filteredItems = (
+    selectedDay ? items.filter((it) => it.dayNumber === selectedDay) : items
+  )
+    .slice()
+    .sort((a, b) => {
+      if (a.dayNumber !== b.dayNumber) return a.dayNumber - b.dayNumber;
+      return parseTimeToMinutes(a.timeSlot) - parseTimeToMinutes(b.timeSlot);
+    });
 
   const totalCost = filteredItems.reduce(
     (sum, it) => sum + it.estimatedCostCentavos,

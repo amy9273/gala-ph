@@ -80,7 +80,7 @@ export const DEMO_MOBILE_ITINERARY: LocalItineraryItem[] = [
     tripId: "trip-elyu-demo",
     dayNumber: 1,
     timeSlot: "04:30 AM",
-    activity: "Assembly & Convoy Staging at NLEX Balintawak",
+    activity: "Assembly & Meetup Staging at NLEX Balintawak",
     location: "Petron NLEX Km 23",
     estimatedCostCentavos: 50000,
     isSynced: true,
