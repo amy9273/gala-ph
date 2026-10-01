@@ -23,8 +23,8 @@ export const Card: React.FC<CardProps> = ({
         };
       case "oceanGlow":
         return {
-          backgroundColor: "rgba(2, 132, 199, 0.08)",
-          borderColor: "rgba(56, 189, 248, 0.3)",
+          backgroundColor: "rgba(255, 90, 54, 0.06)",
+          borderColor: "rgba(255, 90, 54, 0.3)",
         };
       default:
         return {
@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: AppSpacing.base,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
 });

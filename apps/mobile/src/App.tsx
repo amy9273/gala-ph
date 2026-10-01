@@ -16,19 +16,12 @@ import { ItineraryScreen } from "./screens/ItineraryScreen";
 import { PackingScreen } from "./screens/PackingScreen";
 import { ExpensesScreen } from "./screens/ExpensesScreen";
 import { ReceiptScannerScreen } from "./screens/ReceiptScannerScreen";
-import { ConvoyHudScreen } from "./screens/ConvoyHudScreen";
 import { SyncQueueScreen } from "./screens/SyncQueueScreen";
 import { outboxSyncService } from "./services/outbox-sync.service";
 import type { NetworkConnectionState } from "./types";
 
 type ScreenKey =
-  | "overview"
-  | "itinerary"
-  | "convoy"
-  | "expenses"
-  | "packing"
-  | "scanner"
-  | "sync";
+  "overview" | "itinerary" | "expenses" | "packing" | "scanner" | "sync";
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("overview");
@@ -63,7 +56,6 @@ export default function App() {
   // Determine which root bottom tab to highlight
   const getActiveTabKey = (): TabKey => {
     if (activeScreen === "itinerary") return "itinerary";
-    if (activeScreen === "convoy") return "convoy";
     if (
       activeScreen === "expenses" ||
       activeScreen === "scanner" ||
@@ -92,8 +84,6 @@ export default function App() {
     switch (activeScreen) {
       case "overview":
         return <TripOverviewScreen onNavigateTab={navigateTo} />;
-      case "convoy":
-        return <ConvoyHudScreen />;
       case "itinerary":
         return <ItineraryScreen />;
       case "expenses":
@@ -129,7 +119,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        barStyle="light-content"
+        barStyle="dark-content"
         backgroundColor={AppColors.darkBackground}
       />
       <View style={styles.container}>

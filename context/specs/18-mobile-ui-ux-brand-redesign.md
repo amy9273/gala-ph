@@ -52,11 +52,10 @@ This unit executes a comprehensive UI/UX and brand identity transformation:
 
 ### 4.1. Bottom Tab Bar (`apps/mobile/src/navigation/BottomTabBar.tsx`)
 
-- Exactly 4 root destinations:
+- Exactly 3 root destinations:
   1. `overview` — **Trip** (`compass-outline` / `compass`)
   2. `itinerary` — **Itinerary** (`calendar-outline` / `calendar`)
-  3. `convoy` — **Convoy** (`navigate-outline` / `navigate`)
-  4. `expenses` — **Ledger** (`receipt-outline` / `receipt`)
+  3. `expenses` — **KKB Ledger** (`receipt-outline` / `receipt`)
 - Height: 64dp with 48dp minimum touch target.
 - Active state: Sunset Terracotta icon fill with glowing indicator pill.
 
@@ -68,20 +67,25 @@ This unit executes a comprehensive UI/UX and brand identity transformation:
 - **Bayanihan Packing**: Accessible via Trip Overview checklist preview card with direct modal or sub-view toggle.
 - **Outbox Sync**: Header status pill (`NetworkStatusBar.tsx`) is clickable, displaying pending mutation count and opening the `SyncQueueScreen`.
 
-### 4.3. Trip Overview Refactor (`TripOverviewScreen.tsx`)
+### 4.3. Radically Simplified 3-Card Architecture (`TripOverviewScreen.tsx`)
 
-- **Hero Card**:
-  - Warm obsidian surface with subtle sunset terracotta accent border.
-  - Vector icons for location pin (`location`) and calendar (`time-outline`).
-  - Clean badge pills for offline caching and invite code.
-- **Quick Metrics**:
-  - "Total Logged" in Sunset Terracotta (`#FF5A36`).
-  - "Est. Budget" in Warm White (`#F9FAFB`).
-- **Barkada Roster**:
-  - Avatar initials with terracotta/amber accent rings.
-  - Soft pastel role tags (`Lead`, `Driver`, `Non-Drinker`).
-- **Quick Actions Grid**:
-  - Replaced emojis with vector icons in circular tinted containers.
+To eliminate administrative cognitive overload ("Jira-fication"), the home view is structured into exactly 3 high-impact cards:
+
+1. **Card 1: Trip Hero Card (Where & When)**:
+   - Destination title, dates, and assembly info (`📍 Shell Magallanes • 4:00 AM Departure`).
+   - Clean offline badge pill + invite code.
+   - 1-tap **"Share Invite to Group Chat"** button directly copying the pre-formatted Messenger deep link with a toast (no multi-tab modals).
+2. **Card 2: Barkada & Quick Split (Who & Money)**:
+   - Horizontal avatar stack (`[JD] [MS] [CD] + Add Friend`) with member count badge.
+   - Quick Add Friend: minimal 1-field name prompt modal.
+   - Glanceable Ambagan: `Est. Ambagan: ₱X / head` alongside total logged expenses.
+   - Primary CTA: **"+ Split Expense / Scan Receipt"** button navigating directly to camera OCR / quick expense logger.
+3. **Card 3: Shared Essentials (Claim It Checklist)**:
+   - Lightweight checklist of critical shared gear (coolers, grills, first-aid, speakers).
+   - 1-tap **"Claim It"** flow: tapping an unclaimed item instantly assigns it to the user; tapping the checkbox marks it packed.
+   - Deep-link to full Bayanihan packing view (`View All →`).
+4. **Quick Navigation Shortcuts**:
+   - Compact bottom row linking directly to **Itinerary**, **Packing**, and **KKB Ledger**.
 
 ---
 

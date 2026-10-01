@@ -4,11 +4,14 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  TextInput,
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "../theme/colors";
 import { AppSpacing } from "../theme/spacing";
+import { AppTypography } from "../theme/typography";
 import { CardSkeleton } from "../components/ui/SkeletonLoader";
 import { ErrorState } from "../components/ui/ErrorState";
 import { CurrencyDisplay } from "../components/ui/CurrencyDisplay";
@@ -16,19 +19,54 @@ import { tripRepository } from "../lib/sqlite/repositories/trip.repository";
 import { itineraryRepository } from "../lib/sqlite/repositories/itinerary.repository";
 import { expenseRepository } from "../lib/sqlite/repositories/expense.repository";
 import { packingRepository } from "../lib/sqlite/repositories/packing.repository";
-import type {
-  LocalTrip,
-  LocalItineraryItem,
-  LocalExpense,
-  LocalPackingItem,
-} from "../types";
+import type { UserRole } from "@gala-ph/shared";
+import type { LocalTrip, LocalItineraryItem, LocalExpense } from "../types";
 
 interface TripOverviewScreenProps {
   onNavigateTab: (
-    tab:
-      "overview" | "itinerary" | "convoy" | "expenses" | "packing" | "scanner",
+    tab: "overview" | "itinerary" | "expenses" | "packing" | "scanner",
   ) => void;
 }
+
+interface BarkadaMember {
+  id: string;
+  name: string;
+  role: UserRole;
+}
+
+interface SharedEssentialItem {
+  id: string;
+  name: string;
+  claimedBy: string | null;
+  isPacked: boolean;
+}
+
+const DEFAULT_ESSENTIALS: SharedEssentialItem[] = [
+  {
+    id: "ess-1",
+    name: "50L Ice Chest / Cooler",
+    claimedBy: "Juan",
+    isPacked: true,
+  },
+  {
+    id: "ess-2",
+    name: "Portable Butane Stove & Grill",
+    claimedBy: null,
+    isPacked: false,
+  },
+  {
+    id: "ess-3",
+    name: "First Aid Kit & Meds",
+    claimedBy: "Maria",
+    isPacked: true,
+  },
+  {
+    id: "ess-4",
+    name: "Bluetooth Beach Speaker",
+    claimedBy: null,
+    isPacked: false,
+  },
+];
 
 export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
   onNavigateTab,
@@ -36,9 +74,22 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
   const [trip, setTrip] = useState<LocalTrip | null>(null);
   const [itinerary, setItinerary] = useState<LocalItineraryItem[]>([]);
   const [expenses, setExpenses] = useState<LocalExpense[]>([]);
-  const [packingItems, setPackingItems] = useState<LocalPackingItem[]>([]);
+  const [essentials, setEssentials] =
+    useState<SharedEssentialItem[]>(DEFAULT_ESSENTIALS);
+  const [members, setMembers] = useState<BarkadaMember[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Quick Add Friend Modal
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [friendName, setFriendName] = useState("");
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -56,7 +107,25 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
         ]);
         setItinerary(itinItems);
         setExpenses(expItems);
-        setPackingItems(packItems);
+
+        if (packItems.length > 0) {
+          setEssentials(
+            packItems.slice(0, 4).map((p) => ({
+              id: p.id,
+              name: p.itemName,
+              claimedBy: p.assignedToName || null,
+              isPacked: p.isPacked,
+            })),
+          );
+        }
+
+        setMembers(
+          currentTrip.members.map((m) => ({
+            id: m.id,
+            name: m.name,
+            role: m.role,
+          })),
+        );
       }
     } catch (err) {
       setError(
@@ -71,12 +140,49 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
     void loadData();
   }, []);
 
+  const handleShareTrip = () => {
+    const code = trip?.inviteCode || "ELYU26";
+    showToast(
+      `Trip link copied! "Uy tara Elyu! Join with code ${code}: https://gala.ph/join/${code}"`,
+    );
+  };
+
+  const handleAddFriend = () => {
+    if (!friendName.trim()) return;
+    const newMember: BarkadaMember = {
+      id: `user-${Date.now()}`,
+      name: friendName.trim(),
+      role: "MEMBER",
+    };
+    setMembers((prev) => [...prev, newMember]);
+    setFriendName("");
+    setIsAddModalOpen(false);
+    showToast(`${newMember.name} added to the barkada!`);
+  };
+
+  const handleToggleClaim = (itemId: string) => {
+    setEssentials((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        if (!item.claimedBy) {
+          showToast(`Claimed ${item.name}! You're bringing this.`);
+          return { ...item, claimedBy: "You" };
+        }
+        return {
+          ...item,
+          isPacked: !item.isPacked,
+        };
+      }),
+    );
+  };
+
   if (isLoading) {
     return (
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
       >
+        <CardSkeleton />
         <CardSkeleton />
         <CardSkeleton />
       </ScrollView>
@@ -88,7 +194,7 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
       <View style={[styles.container, styles.center]}>
         <ErrorState
           title="Trip Not Found"
-          message={error || "No local offline trip found in SQLite storage."}
+          message={error || "No offline trip available. Connect to sync."}
           onRetry={loadData}
         />
       </View>
@@ -103,300 +209,385 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
     (sum, i) => sum + i.estimatedCostCentavos,
     0,
   );
-  const packedCount = packingItems.filter((i) => i.isPacked).length;
+  const headCount = members.length || 1;
+  const estPerHeadCentavos = Math.round(
+    (totalEstimatedCostCentavos || 1400000) / headCount,
+  );
+  const packedCount = essentials.filter((e) => e.isPacked).length;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Destination Hero Card */}
-      <View style={styles.heroCard}>
-        <View style={styles.heroAccentBar} />
-        <View style={styles.heroContent}>
-          <View style={styles.heroHeader}>
-            <View style={styles.offlineBadge}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Toast Notification */}
+      {toastMessage && (
+        <View style={styles.toastBanner}>
+          <Ionicons
+            name="checkmark-circle"
+            size={16}
+            color={AppColors.natureEmerald}
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.toastText} numberOfLines={2}>
+            {toastMessage}
+          </Text>
+        </View>
+      )}
+
+      {/* ======================================================== */}
+      {/* CARD 1: THE TRIP CARD (Where & When)                      */}
+      {/* ======================================================== */}
+      <View style={styles.card}>
+        <View style={styles.cardTopBar}>
+          <View style={styles.badgeRow}>
+            <View style={styles.offlinePill}>
               <Ionicons
                 name="cloud-done-outline"
-                size={13}
+                size={12}
                 color={AppColors.accentGold}
                 style={{ marginRight: 4 }}
               />
-              <Text style={styles.offlineBadgeText}>OFFLINE CACHED</Text>
+              <Text style={styles.offlinePillText}>OFFLINE READY</Text>
             </View>
-            <View style={styles.codeBadge}>
-              <Text style={styles.codeBadgeText}>CODE: {trip.inviteCode}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.tripTitle}>{trip.title}</Text>
-
-          <View style={styles.metaRow}>
-            <Ionicons
-              name="location"
-              size={16}
-              color={AppColors.brandPrimary}
-              style={styles.metaIcon}
-            />
-            <Text style={styles.destinationText}>{trip.destination}</Text>
-          </View>
-
-          <View style={styles.metaRow}>
-            <Ionicons
-              name="time-outline"
-              size={15}
-              color={AppColors.textSecondary}
-              style={styles.metaIcon}
-            />
-            <Text style={styles.datesText}>
-              Oct 15 - Oct 18, 2026 • 4 Days, 3 Nights
-            </Text>
-          </View>
-
-          <View style={styles.modeRow}>
-            <View style={styles.modeBadge}>
-              <Ionicons
-                name="car-outline"
-                size={13}
-                color={AppColors.natureEmerald}
-                style={{ marginRight: 4 }}
-              />
-              <Text style={styles.modeBadgeText}>
-                {trip.travelMode === "HYBRID"
-                  ? "Convoy + Commuter Hybrid"
-                  : trip.travelMode}
-              </Text>
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() =>
+                showToast(`Code ${trip.inviteCode} copied to clipboard!`)
+              }
+              style={styles.codePill}
+            >
+              <Text style={styles.codePillText}>CODE: {trip.inviteCode}</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
 
-      {/* Quick Spend & Estimation Metrics Bento */}
-      <View style={styles.metricsRow}>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Total Logged (KKB)</Text>
-          <CurrencyDisplay
-            centavos={totalExpenseCentavos}
-            size="md"
+        <Text style={styles.tripTitle}>{trip.title}</Text>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="location"
+            size={16}
             color={AppColors.brandPrimary}
+            style={styles.infoIcon}
           />
-          <Text style={styles.metricSub}>
-            {expenses.length} expenses logged
+          <Text style={styles.destinationText}>{trip.destination}</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="calendar-outline"
+            size={15}
+            color={AppColors.textSecondary}
+            style={styles.infoIcon}
+          />
+          <Text style={styles.metaSub}>
+            Oct 15 – Oct 18, 2026 • 4 Days, 3 Nights
           </Text>
         </View>
 
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Est. Budget</Text>
-          <CurrencyDisplay
-            centavos={totalEstimatedCostCentavos}
-            size="md"
-            color={AppColors.textPrimary}
+        <View style={styles.assemblyBox}>
+          <Ionicons
+            name="flag-outline"
+            size={14}
+            color={AppColors.brandPrimary}
+            style={{ marginRight: 6 }}
           />
-          <Text style={styles.metricSub}>
-            {itinerary.length} stops scheduled
+          <Text style={styles.assemblyText}>
+            Assembly: Shell Magallanes • 4:00 AM Departure
           </Text>
         </View>
+
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleShareTrip}
+          style={styles.shareTripButton}
+        >
+          <Ionicons
+            name="share-social-outline"
+            size={16}
+            color="#FFFFFF"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.shareTripButtonText}>
+            Share Invite to Group Chat
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Primary Action Button: Scan Dining Receipt */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => onNavigateTab("scanner")}
-        style={styles.scanActionButton}
-      >
-        <View style={styles.scanIconWrapper}>
-          <Ionicons name="camera" size={20} color="#FFFFFF" />
-        </View>
-        <View style={styles.scanTextWrapper}>
-          <Text style={styles.scanActionTitle}>Scan Dining Receipt</Text>
-          <Text style={styles.scanActionSubtitle}>
-            OCR line-item extraction with non-drinker exclusion
-          </Text>
-        </View>
-        <Ionicons
-          name="chevron-forward"
-          size={18}
-          color={AppColors.textSecondary}
-        />
-      </TouchableOpacity>
-
-      {/* Bayanihan Packing Progress Card */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => onNavigateTab("packing")}
-        style={styles.packingCard}
-      >
-        <View style={styles.packingHeader}>
-          <View style={styles.packingTitleRow}>
-            <Ionicons
-              name="checkbox-outline"
-              size={18}
-              color={AppColors.natureEmerald}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.sectionTitle}>Bayanihan Packing</Text>
+      {/* ======================================================== */}
+      {/* CARD 2: BARKADA & QUICK SPLIT (Who & Money)              */}
+      {/* ======================================================== */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.cardTitle}>Barkada</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{members.length} Joined</Text>
+            </View>
           </View>
-          <Text style={styles.packingCount}>
-            {packedCount} / {packingItems.length || 6} packed
-          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setIsAddModalOpen(true)}
+            style={styles.addFriendBtn}
+          >
+            <Ionicons
+              name="person-add-outline"
+              size={13}
+              color={AppColors.brandPrimary}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.addFriendBtnText}>+ Add Friend</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.progressBarBg}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                width: `${
-                  packingItems.length > 0
-                    ? Math.round((packedCount / packingItems.length) * 100)
-                    : 60
-                }%`,
-              },
-            ]}
-          />
-        </View>
-        <Text style={styles.packingSub}>
-          Shared gear checklist: cooler, first-aid kit, powerbank
-        </Text>
-      </TouchableOpacity>
 
-      {/* Barkada Roster */}
-      <View style={styles.rosterCard}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Barkada Roster</Text>
-          <View style={styles.memberCountBadge}>
-            <Text style={styles.memberCountText}>
-              {trip.members.length} Members
+        {/* Horizontal Avatar Stack */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.avatarStack}
+        >
+          {members.map((m) => (
+            <View key={m.id} style={styles.avatarItem}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarInitial}>
+                  {m.name.substring(0, 2).toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.avatarName} numberOfLines={1}>
+                {m.name.split(" ")[0]}
+              </Text>
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => setIsAddModalOpen(true)}
+            style={styles.avatarItemAdd}
+          >
+            <Ionicons name="add" size={18} color={AppColors.textSecondary} />
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Budget & Split Metrics Bento */}
+        <View style={styles.splitBox}>
+          <View style={styles.splitStat}>
+            <Text style={styles.splitLabel}>Est. Ambagan</Text>
+            <CurrencyDisplay
+              centavos={estPerHeadCentavos}
+              size="md"
+              color={AppColors.brandPrimary}
+            />
+            <Text style={styles.splitSub}>per person</Text>
+          </View>
+
+          <View style={styles.splitDivider} />
+
+          <View style={styles.splitStat}>
+            <Text style={styles.splitLabel}>Total Logged</Text>
+            <CurrencyDisplay
+              centavos={totalExpenseCentavos}
+              size="md"
+              color={AppColors.textPrimary}
+            />
+            <Text style={styles.splitSub}>
+              {expenses.length} expenses on record
             </Text>
           </View>
         </View>
 
-        {trip.members.map((member, idx) => (
-          <View
-            key={member.id}
-            style={[
-              styles.memberRow,
-              idx === trip.members.length - 1 && styles.memberRowLast,
-            ]}
+        {/* Primary CTA: Split Expense */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => onNavigateTab("scanner")}
+          style={styles.splitCtaButton}
+        >
+          <Ionicons
+            name="receipt-outline"
+            size={16}
+            color="#FFFFFF"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.splitCtaButtonText}>
+            + Split Expense / Scan Receipt
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ======================================================== */}
+      {/* CARD 3: SHARED ESSENTIALS (Claim It Checklist)           */}
+      {/* ======================================================== */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.cardTitle}>Shared Essentials</Text>
+            <Text style={styles.essentialsCount}>
+              {packedCount}/{essentials.length} Packed
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => onNavigateTab("packing")}
+            style={styles.viewAllBtn}
           >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {member.name.substring(0, 2).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.memberInfo}>
-              <Text style={styles.memberName}>{member.name}</Text>
-              <View style={styles.memberBadges}>
-                {member.role === "TRIP_LEAD" ? (
-                  <View style={[styles.roleTag, styles.roleLead]}>
-                    <Text style={[styles.roleText, styles.roleLeadText]}>
-                      Lead
-                    </Text>
-                  </View>
-                ) : null}
-                {member.isDriver ? (
-                  <View style={[styles.roleTag, styles.roleDriver]}>
-                    <Text style={[styles.roleText, styles.roleDriverText]}>
-                      Driver
-                    </Text>
-                  </View>
-                ) : null}
-                {member.isNonDrinker ? (
-                  <View style={[styles.roleTag, styles.roleNonDrinker]}>
-                    <Text style={[styles.roleText, styles.roleNonDrinkerText]}>
-                      Non-Drinker
-                    </Text>
-                  </View>
-                ) : null}
+            <Text style={styles.viewAllText}>View All →</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.essentialsSub}>
+          Tap an item to claim responsibility or toggle packed.
+        </Text>
+
+        <View style={styles.essentialsList}>
+          {essentials.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              activeOpacity={0.7}
+              onPress={() => handleToggleClaim(item.id)}
+              style={[
+                styles.essentialRow,
+                item.isPacked && styles.essentialRowPacked,
+              ]}
+            >
+              <View
+                style={[
+                  styles.checkCircle,
+                  item.isPacked && styles.checkCirclePacked,
+                ]}
+              >
+                {item.isPacked && (
+                  <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+                )}
               </View>
+
+              <View style={styles.essentialInfo}>
+                <Text
+                  style={[
+                    styles.essentialName,
+                    item.isPacked && styles.essentialNamePacked,
+                  ]}
+                >
+                  {item.name}
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.claimBadge,
+                  item.claimedBy ? styles.claimBadgeClaimed : null,
+                ]}
+              >
+                <Ionicons
+                  name={item.claimedBy ? "person-outline" : "hand-left-outline"}
+                  size={11}
+                  color={
+                    item.claimedBy
+                      ? AppColors.natureEmerald
+                      : AppColors.brandPrimary
+                  }
+                  style={{ marginRight: 3 }}
+                />
+                <Text
+                  style={[
+                    styles.claimBadgeText,
+                    item.claimedBy ? styles.claimBadgeTextClaimed : null,
+                  ]}
+                >
+                  {item.claimedBy || "Tap to Claim"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* ======================================================== */}
+      {/* QUICK SHORTCUTS ROW                                      */}
+      {/* ======================================================== */}
+      <View style={styles.shortcutsRow}>
+        <TouchableOpacity
+          onPress={() => onNavigateTab("itinerary")}
+          style={styles.shortcutTile}
+        >
+          <Ionicons
+            name="calendar"
+            size={18}
+            color={AppColors.brandPrimary}
+            style={{ marginBottom: 4 }}
+          />
+          <Text style={styles.shortcutTitle}>Itinerary</Text>
+          <Text style={styles.shortcutSub}>{itinerary.length} stops</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onNavigateTab("packing")}
+          style={styles.shortcutTile}
+        >
+          <Ionicons
+            name="bag-check"
+            size={18}
+            color={AppColors.accentGold}
+            style={{ marginBottom: 4 }}
+          />
+          <Text style={styles.shortcutTitle}>Packing</Text>
+          <Text style={styles.shortcutSub}>
+            {packedCount}/{essentials.length} packed
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onNavigateTab("expenses")}
+          style={styles.shortcutTile}
+        >
+          <Ionicons
+            name="wallet"
+            size={18}
+            color={AppColors.natureEmerald}
+            style={{ marginBottom: 4 }}
+          />
+          <Text style={styles.shortcutTitle}>KKB Ledger</Text>
+          <Text style={styles.shortcutSub}>GCash settle</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Quick Add Friend Modal */}
+      <Modal
+        visible={isAddModalOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setIsAddModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Add Friend to Barkada</Text>
+            <Text style={styles.modalSub}>
+              Enter their name to add them to expenses and trip sharing.
+            </Text>
+
+            <TextInput
+              style={styles.inputField}
+              value={friendName}
+              onChangeText={setFriendName}
+              placeholder="Friend's Name (e.g. Bea, Carlos)"
+              placeholderTextColor={AppColors.textMuted}
+              autoFocus
+            />
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity
+                onPress={() => setIsAddModalOpen(false)}
+                style={styles.modalCancelBtn}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleAddFriend}
+                style={styles.modalAddBtn}
+              >
+                <Text style={styles.modalAddText}>Add Friend</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        ))}
-      </View>
-
-      {/* Quick Navigation Action Grid */}
-      <Text style={styles.actionsHeader}>Quick Actions</Text>
-      <View style={styles.actionGrid}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => onNavigateTab("itinerary")}
-          style={styles.actionTile}
-        >
-          <View
-            style={[
-              styles.actionIconContainer,
-              { backgroundColor: "rgba(255, 90, 54, 0.12)" },
-            ]}
-          >
-            <Ionicons
-              name="calendar-outline"
-              size={20}
-              color={AppColors.brandPrimary}
-            />
-          </View>
-          <Text style={styles.actionTitle}>Itinerary</Text>
-          <Text style={styles.actionSubtitle}>Timeline & stops</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => onNavigateTab("convoy")}
-          style={styles.actionTile}
-        >
-          <View
-            style={[
-              styles.actionIconContainer,
-              { backgroundColor: "rgba(245, 158, 11, 0.12)" },
-            ]}
-          >
-            <Ionicons
-              name="navigate-outline"
-              size={20}
-              color={AppColors.accentGold}
-            />
-          </View>
-          <Text style={styles.actionTitle}>Convoy HUD</Text>
-          <Text style={styles.actionSubtitle}>Radar & SOS beacon</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => onNavigateTab("expenses")}
-          style={styles.actionTile}
-        >
-          <View
-            style={[
-              styles.actionIconContainer,
-              { backgroundColor: "rgba(16, 185, 129, 0.12)" },
-            ]}
-          >
-            <Ionicons
-              name="receipt-outline"
-              size={20}
-              color={AppColors.natureEmerald}
-            />
-          </View>
-          <Text style={styles.actionTitle}>KKB Ledger</Text>
-          <Text style={styles.actionSubtitle}>Bills & GCash split</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => onNavigateTab("packing")}
-          style={styles.actionTile}
-        >
-          <View
-            style={[
-              styles.actionIconContainer,
-              { backgroundColor: "rgba(156, 163, 175, 0.12)" },
-            ]}
-          >
-            <Ionicons
-              name="bag-check-outline"
-              size={20}
-              color={AppColors.textSecondary}
-            />
-          </View>
-          <Text style={styles.actionTitle}>Gear Checklist</Text>
-          <Text style={styles.actionSubtitle}>Shared packing</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -404,7 +595,7 @@ export const TripOverviewScreen: React.FC<TripOverviewScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.darkBackground,
+    backgroundColor: AppColors.background,
   },
   content: {
     padding: AppSpacing.base,
@@ -414,329 +605,396 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  heroCard: {
-    backgroundColor: AppColors.darkSurface,
+  toastBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(5, 150, 105, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(5, 150, 105, 0.35)",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginBottom: AppSpacing.md,
+  },
+  toastText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: AppColors.natureEmerald,
+    flex: 1,
+  },
+  card: {
+    backgroundColor: AppColors.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: AppColors.darkBorder,
-    marginBottom: AppSpacing.base,
-    overflow: "hidden",
-  },
-  heroAccentBar: {
-    height: 3,
-    backgroundColor: AppColors.brandPrimary,
-  },
-  heroContent: {
+    borderColor: AppColors.border,
     padding: AppSpacing.base,
+    marginBottom: AppSpacing.base,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  heroHeader: {
+  cardTopBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: AppSpacing.md,
+    marginBottom: AppSpacing.sm,
   },
-  offlineBadge: {
+  badgeRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(245, 158, 11, 0.12)",
+    gap: 8,
+  },
+  offlinePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(217, 119, 6, 0.10)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(245, 158, 11, 0.3)",
+    borderColor: "rgba(217, 119, 6, 0.3)",
   },
-  offlineBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
+  offlinePillText: {
+    ...AppTypography.tiny,
     color: AppColors.accentGold,
-    letterSpacing: 0.5,
   },
-  codeBadge: {
-    backgroundColor: AppColors.darkSurfaceSecondary,
+  codePill: {
+    backgroundColor: AppColors.surfaceSecondary,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: AppColors.darkBorder,
+    borderColor: AppColors.border,
   },
-  codeBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: AppColors.textSecondary,
-    letterSpacing: 0.5,
+  codePillText: {
+    ...AppTypography.tiny,
+    color: AppColors.brandPrimary,
   },
   tripTitle: {
-    fontSize: 22,
-    fontWeight: "800",
+    ...AppTypography.h2,
     color: AppColors.textPrimary,
     marginBottom: 6,
-    letterSpacing: -0.3,
   },
-  metaRow: {
+  infoRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
   },
-  metaIcon: {
+  infoIcon: {
     marginRight: 6,
   },
   destinationText: {
-    fontSize: 14,
-    fontWeight: "600",
+    ...AppTypography.bodyBold,
     color: AppColors.brandPrimary,
   },
-  datesText: {
-    fontSize: 13,
+  metaSub: {
+    ...AppTypography.caption,
     color: AppColors.textSecondary,
   },
-  modeRow: {
+  assemblyBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: AppColors.surfaceSecondary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
     marginTop: 6,
+    marginBottom: AppSpacing.md,
   },
-  modeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(16, 185, 129, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.25)",
-  },
-  modeBadgeText: {
-    fontSize: 11,
+  assemblyText: {
+    ...AppTypography.caption,
     fontWeight: "600",
-    color: AppColors.natureEmerald,
+    color: AppColors.textPrimary,
   },
-  metricsRow: {
+  shareTripButton: {
     flexDirection: "row",
-    gap: AppSpacing.md,
-    marginBottom: AppSpacing.base,
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: AppColors.darkSurface,
-    borderRadius: 12,
-    padding: AppSpacing.md,
-    borderWidth: 1,
-    borderColor: AppColors.darkBorder,
-  },
-  metricLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: AppColors.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-    marginBottom: 4,
-  },
-  metricSub: {
-    fontSize: 11,
-    color: AppColors.textMuted,
-    marginTop: 4,
-  },
-  scanActionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: AppColors.darkSurface,
-    borderRadius: 12,
-    padding: AppSpacing.base,
-    borderWidth: 1,
-    borderColor: "rgba(255, 90, 54, 0.35)",
-    marginBottom: AppSpacing.base,
-  },
-  scanIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: AppColors.brandPrimary,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: AppSpacing.md,
+    backgroundColor: AppColors.brandPrimary,
+    borderRadius: 8,
+    paddingVertical: 12,
   },
-  scanTextWrapper: {
-    flex: 1,
+  shareTripButtonText: {
+    ...AppTypography.bodyBold,
+    color: "#FFFFFF",
   },
-  scanActionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: AppColors.textPrimary,
-    marginBottom: 2,
-  },
-  scanActionSubtitle: {
-    fontSize: 12,
-    color: AppColors.textSecondary,
-  },
-  packingCard: {
-    backgroundColor: AppColors.darkSurface,
-    borderRadius: 12,
-    padding: AppSpacing.base,
-    borderWidth: 1,
-    borderColor: AppColors.darkBorder,
-    marginBottom: AppSpacing.base,
-  },
-  packingHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  packingTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  packingCount: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: AppColors.natureEmerald,
-  },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: AppColors.darkSurfaceSecondary,
-    borderRadius: 3,
-    marginBottom: 6,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: 6,
-    backgroundColor: AppColors.natureEmerald,
-    borderRadius: 3,
-  },
-  packingSub: {
-    fontSize: 12,
-    color: AppColors.textMuted,
-  },
-  rosterCard: {
-    backgroundColor: AppColors.darkSurface,
-    borderRadius: 12,
-    padding: AppSpacing.base,
-    borderWidth: 1,
-    borderColor: AppColors.darkBorder,
-    marginBottom: AppSpacing.base,
-  },
-  sectionHeader: {
+  cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: AppSpacing.md,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cardTitle: {
+    ...AppTypography.h3,
     color: AppColors.textPrimary,
   },
-  memberCountBadge: {
-    backgroundColor: AppColors.darkSurfaceSecondary,
+  countBadge: {
+    backgroundColor: AppColors.surfaceSecondary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  memberCountText: {
-    fontSize: 11,
-    fontWeight: "600",
+  countBadgeText: {
+    ...AppTypography.tiny,
     color: AppColors.textSecondary,
   },
-  memberRow: {
+  addFriendBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: AppSpacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.darkBorder,
-  },
-  memberRowLast: {
-    borderBottomWidth: 0,
-    paddingBottom: 0,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255, 90, 54, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(255, 90, 54, 0.4)",
+    borderColor: AppColors.brandPrimaryLight,
+  },
+  addFriendBtnText: {
+    ...AppTypography.caption,
+    fontWeight: "700",
+    color: AppColors.brandPrimary,
+  },
+  avatarStack: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 4,
+    marginBottom: AppSpacing.md,
+  },
+  avatarItem: {
+    alignItems: "center",
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 90, 54, 0.12)",
+    borderWidth: 2,
+    borderColor: AppColors.brandPrimary,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: AppSpacing.md,
+    marginBottom: 4,
   },
-  avatarText: {
-    fontSize: 13,
-    color: AppColors.brandPrimary,
+  avatarInitial: {
+    fontSize: 14,
     fontWeight: "700",
+    color: AppColors.brandPrimary,
   },
-  memberInfo: {
+  avatarName: {
+    ...AppTypography.tiny,
+    color: AppColors.textSecondary,
+    maxWidth: 50,
+  },
+  avatarItemAdd: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: AppColors.surfaceSecondary,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: AppColors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  splitBox: {
+    flexDirection: "row",
+    backgroundColor: AppColors.surfaceSecondary,
+    borderRadius: 10,
+    padding: AppSpacing.md,
+    marginBottom: AppSpacing.md,
+  },
+  splitStat: {
     flex: 1,
   },
-  memberName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: AppColors.textPrimary,
+  splitDivider: {
+    width: 1,
+    backgroundColor: AppColors.border,
+    marginHorizontal: AppSpacing.md,
+  },
+  splitLabel: {
+    ...AppTypography.tiny,
+    color: AppColors.textMuted,
     marginBottom: 2,
   },
-  memberBadges: {
+  splitSub: {
+    ...AppTypography.tiny,
+    color: AppColors.textSecondary,
+    marginTop: 2,
+  },
+  splitCtaButton: {
     flexDirection: "row",
-    gap: AppSpacing.xs,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: AppColors.natureEmerald,
+    borderRadius: 8,
+    paddingVertical: 12,
   },
-  roleTag: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
+  splitCtaButtonText: {
+    ...AppTypography.bodyBold,
+    color: "#FFFFFF",
   },
-  roleText: {
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  roleLead: {
-    backgroundColor: "rgba(255, 90, 54, 0.12)",
-  },
-  roleLeadText: {
-    color: AppColors.brandPrimary,
-  },
-  roleDriver: {
-    backgroundColor: "rgba(245, 158, 11, 0.12)",
-  },
-  roleDriverText: {
-    color: AppColors.accentGold,
-  },
-  roleNonDrinker: {
-    backgroundColor: "rgba(16, 185, 129, 0.12)",
-  },
-  roleNonDrinkerText: {
+  essentialsCount: {
+    ...AppTypography.caption,
+    fontWeight: "600",
     color: AppColors.natureEmerald,
   },
-  actionsHeader: {
-    fontSize: 15,
+  viewAllBtn: {
+    paddingVertical: 2,
+  },
+  viewAllText: {
+    ...AppTypography.caption,
     fontWeight: "700",
+    color: AppColors.brandPrimary,
+  },
+  essentialsSub: {
+    ...AppTypography.caption,
+    color: AppColors.textMuted,
+    marginBottom: AppSpacing.sm,
+  },
+  essentialsList: {
+    gap: 8,
+  },
+  essentialRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: AppColors.surfaceSecondary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  essentialRowPacked: {
+    opacity: 0.65,
+  },
+  checkCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: AppColors.textMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  checkCirclePacked: {
+    backgroundColor: AppColors.natureEmerald,
+    borderColor: AppColors.natureEmerald,
+  },
+  essentialInfo: {
+    flex: 1,
+  },
+  essentialName: {
+    ...AppTypography.bodyBold,
+    fontSize: 13,
+    color: AppColors.textPrimary,
+  },
+  essentialNamePacked: {
+    textDecorationLine: "line-through",
+    color: AppColors.textSecondary,
+  },
+  claimBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 90, 54, 0.10)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  claimBadgeClaimed: {
+    backgroundColor: "rgba(5, 150, 105, 0.10)",
+  },
+  claimBadgeText: {
+    ...AppTypography.tiny,
+    color: AppColors.brandPrimary,
+    fontWeight: "700",
+  },
+  claimBadgeTextClaimed: {
+    color: AppColors.natureEmerald,
+  },
+  shortcutsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  shortcutTile: {
+    flex: 1,
+    backgroundColor: AppColors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: "center",
+  },
+  shortcutTitle: {
+    ...AppTypography.caption,
+    fontWeight: "700",
+    color: AppColors.textPrimary,
+  },
+  shortcutSub: {
+    ...AppTypography.tiny,
+    color: AppColors.textMuted,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    padding: AppSpacing.base,
+  },
+  modalBox: {
+    backgroundColor: AppColors.surface,
+    borderRadius: 14,
+    padding: AppSpacing.xl,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  modalTitle: {
+    ...AppTypography.h3,
+    color: AppColors.textPrimary,
+    marginBottom: 4,
+  },
+  modalSub: {
+    ...AppTypography.caption,
+    color: AppColors.textSecondary,
+    marginBottom: AppSpacing.md,
+  },
+  inputField: {
+    backgroundColor: AppColors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     color: AppColors.textPrimary,
     marginBottom: AppSpacing.md,
   },
-  actionGrid: {
+  modalActionRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: AppSpacing.md,
+    justifyContent: "flex-end",
+    gap: 10,
   },
-  actionTile: {
-    width: "47.5%",
-    backgroundColor: AppColors.darkSurface,
-    borderRadius: 12,
-    padding: AppSpacing.base,
-    borderWidth: 1,
-    borderColor: AppColors.darkBorder,
+  modalCancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
   },
-  actionIconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: AppSpacing.sm,
-  },
-  actionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: AppColors.textPrimary,
-    marginBottom: 2,
-  },
-  actionSubtitle: {
-    fontSize: 11,
+  modalCancelText: {
+    ...AppTypography.bodyBold,
     color: AppColors.textSecondary,
+  },
+  modalAddBtn: {
+    backgroundColor: AppColors.brandPrimary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  modalAddText: {
+    ...AppTypography.bodyBold,
+    color: "#FFFFFF",
   },
 });

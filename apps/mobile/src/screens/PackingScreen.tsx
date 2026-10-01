@@ -48,9 +48,7 @@ export const PackingScreen: React.FC = () => {
   // Add Item Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemName, setItemName] = useState("");
-  const [itemCategory, setItemCategory] = useState<PackingCategory>("GEAR");
-  const [quantity, setQuantity] = useState("1");
-  const [assigneeName, setAssigneeName] = useState("Miguel Santos");
+  const [willBringMyself, setWillBringMyself] = useState(true);
 
   const loadPacking = async () => {
     setIsLoading(true);
@@ -77,6 +75,15 @@ export const PackingScreen: React.FC = () => {
     setItems((prev) => prev.map((it) => (it.id === item.id ? updated : it)));
   };
 
+  const handleClaimItem = async (item: LocalPackingItem) => {
+    const updated: LocalPackingItem = {
+      ...item,
+      assignedToName: "Juan (You)",
+    };
+    const saved = await outboxSyncService.addPackingItemOptimistic(updated);
+    setItems((prev) => prev.map((it) => (it.id === item.id ? saved : it)));
+  };
+
   const handleAddItem = async () => {
     if (!itemName.trim()) return;
 
@@ -84,9 +91,9 @@ export const PackingScreen: React.FC = () => {
       id: `pack-local-${Date.now()}`,
       tripId: "trip-elyu-demo",
       itemName: itemName.trim(),
-      category: itemCategory,
-      quantity: parseInt(quantity, 10) || 1,
-      assignedToName: assigneeName.trim() || undefined,
+      category: "GEAR",
+      quantity: 1,
+      assignedToName: willBringMyself ? "Juan (You)" : undefined,
       isPacked: false,
       isSynced: false,
       isLocalDraft: true,
@@ -95,10 +102,8 @@ export const PackingScreen: React.FC = () => {
     const saved = await outboxSyncService.addPackingItemOptimistic(newItem);
     setItems((prev) => [...prev, saved]);
     setIsModalOpen(false);
-
-    // Reset
     setItemName("");
-    setQuantity("1");
+    setWillBringMyself(true);
   };
 
   const filteredItems =
@@ -228,10 +233,37 @@ export const PackingScreen: React.FC = () => {
                   </Text>
 
                   <View style={styles.itemMeta}>
-                    <Text style={styles.metaText}>
-                      Qty: {item.quantity} •{" "}
-                      {item.assignedToName ? item.assignedToName : "Unassigned"}
-                    </Text>
+                    <Text style={styles.metaText}>Qty: {item.quantity}</Text>
+
+                    {item.assignedToName ? (
+                      <View style={styles.assignedBadge}>
+                        <Ionicons
+                          name="person-circle-outline"
+                          size={12}
+                          color={AppColors.natureEmerald}
+                          style={{ marginRight: 3 }}
+                        />
+                        <Text style={styles.assignedBadgeText}>
+                          {item.assignedToName}
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => handleClaimItem(item)}
+                        style={styles.unassignedBadge}
+                      >
+                        <Ionicons
+                          name="hand-left-outline"
+                          size={11}
+                          color={AppColors.brandPrimary}
+                          style={{ marginRight: 3 }}
+                        />
+                        <Text style={styles.unassignedBadgeText}>
+                          Tap to Claim
+                        </Text>
+                      </TouchableOpacity>
+                    )}
 
                     {!item.isSynced ? (
                       <Badge
@@ -257,65 +289,45 @@ export const PackingScreen: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Bayanihan Item</Text>
+            <Text style={styles.modalTitle}>Add Shared Gear</Text>
+            <Text style={styles.modalSub}>
+              List an item for the trip. You or a friend can claim it.
+            </Text>
 
             <Text style={styles.inputLabel}>Item Name</Text>
             <TextInput
               style={styles.input}
               value={itemName}
               onChangeText={setItemName}
-              placeholder="e.g. Coleman 40L Cooler, Extension Cord"
+              placeholder="e.g. Coleman 40L Cooler, Butane Stove, Extension Cord"
               placeholderTextColor={AppColors.textMuted}
+              autoFocus
             />
 
-            <Text style={styles.inputLabel}>Category</Text>
-            <View style={styles.catPickerRow}>
-              {(
-                [
-                  "GEAR",
-                  "FOOD_DRINKS",
-                  "MEDICAL",
-                  "COMFORT",
-                  "DOCUMENTS",
-                ] as PackingCategory[]
-              ).map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  onPress={() => setItemCategory(c)}
-                  style={[
-                    styles.catPickerOption,
-                    itemCategory === c && styles.catPickerOptionActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.catPickerText,
-                      itemCategory === c && styles.catPickerTextActive,
-                    ]}
-                  >
-                    {c.replace("_", " ")}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.inputLabel}>Quantity</Text>
-            <TextInput
-              style={styles.input}
-              value={quantity}
-              onChangeText={setQuantity}
-              keyboardType="numeric"
-              placeholderTextColor={AppColors.textMuted}
-            />
-
-            <Text style={styles.inputLabel}>Assigned Member</Text>
-            <TextInput
-              style={styles.input}
-              value={assigneeName}
-              onChangeText={setAssigneeName}
-              placeholder="e.g. Bea Alonzo, Miguel Santos"
-              placeholderTextColor={AppColors.textMuted}
-            />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setWillBringMyself((v) => !v)}
+              style={styles.claimToggleRow}
+            >
+              <View
+                style={[
+                  styles.toggleCheckbox,
+                  willBringMyself && styles.toggleCheckboxActive,
+                ]}
+              >
+                {willBringMyself && (
+                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.toggleTitle}>I will bring this</Text>
+                <Text style={styles.toggleSub}>
+                  {willBringMyself
+                    ? "Assigned to Juan (You)"
+                    : "Open for anyone in the barkada to claim"}
+                </Text>
+              </View>
+            </TouchableOpacity>
 
             <View style={styles.modalButtons}>
               <Button
@@ -500,34 +512,76 @@ const styles = StyleSheet.create({
     marginBottom: AppSpacing.md,
     fontSize: 14,
   },
-  catPickerRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 4,
+  modalSub: {
+    ...AppTypography.caption,
+    color: AppColors.textSecondary,
     marginBottom: AppSpacing.md,
   },
-  catPickerOption: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  claimToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: AppColors.darkSurfaceSecondary,
+    borderRadius: 8,
+    padding: AppSpacing.md,
     borderWidth: 1,
     borderColor: AppColors.darkBorder,
+    marginBottom: AppSpacing.lg,
   },
-  catPickerOptionActive: {
-    backgroundColor: AppColors.natureEmerald,
-    borderColor: AppColors.natureEmeraldLight,
+  toggleCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: AppColors.textMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: AppSpacing.md,
   },
-  catPickerText: {
+  toggleCheckboxActive: {
+    backgroundColor: AppColors.brandPrimary,
+    borderColor: AppColors.brandPrimary,
+  },
+  toggleTitle: {
+    ...AppTypography.bodyBold,
+    color: AppColors.textPrimary,
+  },
+  toggleSub: {
     ...AppTypography.tiny,
     color: AppColors.textSecondary,
-  },
-  catPickerTextActive: {
-    color: "#FFFFFF",
-    fontWeight: "700",
+    marginTop: 2,
   },
   modalButtons: {
     flexDirection: "row",
     marginTop: AppSpacing.sm,
+  },
+  assignedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: AppColors.natureEmeraldBg,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: AppSpacing.sm,
+  },
+  assignedBadgeText: {
+    ...AppTypography.tiny,
+    color: AppColors.natureEmerald,
+    fontWeight: "700",
+  },
+  unassignedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 90, 54, 0.10)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 90, 54, 0.25)",
+    marginLeft: AppSpacing.sm,
+  },
+  unassignedBadgeText: {
+    ...AppTypography.tiny,
+    color: AppColors.brandPrimary,
+    fontWeight: "700",
   },
 });
